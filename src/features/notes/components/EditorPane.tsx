@@ -37,20 +37,11 @@ type SlashCommand = {
 
 type EditorPaneProps = {
   notebook: NotebookRecord;
-  title: string;
-  tag: string;
-  availableTags: string[];
-  onTitleChange: (value: string) => void;
-  onTagChange: (value: string) => void;
   onDraftChange: (draft: EditorDraft) => void;
   onUploadImage: (file: File) => Promise<string>;
   onSave: () => void;
   onExportPdf: (contentHtml: string) => void;
-  isSaving: boolean;
   isExporting: boolean;
-  lastSavedAt: string | null;
-  titleError: string | null;
-  saveMessage: string | null;
   onOutlineChange: (outline: OutlineHeading[], jumpToHeading: (pos: number, key: string) => void) => void;
 };
 
@@ -483,42 +474,17 @@ const SLASH_COMMANDS: SlashCommand[] = [
 
 export function EditorPane({
   notebook,
-  title,
-  tag,
-  availableTags,
-  onTitleChange,
-  onTagChange,
   onDraftChange,
   onUploadImage,
   onSave,
   onExportPdf,
-  isSaving,
   isExporting,
-  lastSavedAt,
-  titleError,
-  saveMessage,
   onOutlineChange
 }: EditorPaneProps) {
   const [toolbarVisible, setToolbarVisible] = useState(true);
   const [slashIndex, setSlashIndex] = useState(0);
-  const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
   const currentNotebookId = useRef<number | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
-  const tagComboboxRef = useRef<HTMLDivElement | null>(null);
-
-  const normalizedTag = tag.trim();
-  const tagQuery = normalizedTag.toLowerCase();
-  const hasExactTagMatch = useMemo(
-    () => availableTags.some((value) => value.toLowerCase() === tagQuery),
-    [availableTags, tagQuery]
-  );
-  const filteredTags = useMemo(() => {
-    if (!normalizedTag) {
-      return availableTags;
-    }
-
-    return availableTags.filter((value) => value.toLowerCase().includes(tagQuery));
-  }, [availableTags, normalizedTag, tagQuery]);
 
   const openImagePicker = () => {
     imageInputRef.current?.click();
@@ -760,19 +726,6 @@ export function EditorPane({
     requestAnimationFrame(() => editor.commands.focus("end"));
   }, [editor, notebook.id, notebook.contentJson]);
 
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (tagComboboxRef.current?.contains(event.target as Node)) {
-        return;
-      }
-
-      setIsTagMenuOpen(false);
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
-
   const slashState = computeSlashCommandState(editor);
 
   const filteredSlashCommands = useMemo(() => {
@@ -792,99 +745,21 @@ export function EditorPane({
 
   return (
     <section className="editor-pane">
-      <header className="editor-pane__header">
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={handleImageSelected}
-        />
-        <div className="editor-meta">
-          <label>
-            <span>Notebook title</span>
-            <input
-              className={`title-input${titleError ? " is-invalid" : ""}`}
-              value={title}
-              maxLength={100}
-              onChange={(event) => onTitleChange(event.target.value.slice(0, 100))}
-            />
-            {titleError ? <small className="field-error">{titleError}</small> : null}
-          </label>
-          <label>
-            <span>Tag</span>
-            <div className="tag-combobox" ref={tagComboboxRef}>
-              <input
-                className="tag-input"
-                value={tag}
-                maxLength={40}
-                onFocus={() => setIsTagMenuOpen(true)}
-                onClick={() => setIsTagMenuOpen(true)}
-                onChange={(event) => {
-                  onTagChange(event.target.value.slice(0, 40));
-                  setIsTagMenuOpen(true);
-                }}
-                placeholder="Search or create a tag"
-              />
-              {isTagMenuOpen ? (
-                <div className="tag-combobox__menu">
-                  {filteredTags.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`tag-combobox__option${normalizedTag.toLowerCase() === value.toLowerCase() ? " is-active" : ""}`}
-                      onClick={() => {
-                        onTagChange(value);
-                        setIsTagMenuOpen(false);
-                      }}
-                    >
-                      {value}
-                    </button>
-                  ))}
-                  {normalizedTag && !hasExactTagMatch ? (
-                    <button
-                      type="button"
-                      className="tag-combobox__option tag-combobox__option--create"
-                      onClick={() => {
-                        onTagChange(normalizedTag.slice(0, 40));
-                        setIsTagMenuOpen(false);
-                      }}
-                    >
-                      Create tag
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </label>
-        </div>
-        <div className="editor-pane__status">
-          <span className="editor-pane__metric">
-            {(editor?.storage.characterCount.characters() ?? notebook.plainTextLength).toLocaleString()} characters
-          </span>
-          <button type="button" className="primary-button" onClick={onSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </button>
-          <button
-            type="button"
-            className="ghost-button"
-            onClick={() => onExportPdf(editor?.getHTML() ?? "")}
-            disabled={isExporting}
-          >
-            {isExporting ? "Exporting..." : "Export PDF"}
-          </button>
-          {saveMessage ? <span className="editor-pane__message">{saveMessage}</span> : null}
-          <span className="editor-pane__metric">
-            {lastSavedAt ? `Saved ${new Date(lastSavedAt).toLocaleTimeString()}` : "Unsaved"}
-          </span>
-        </div>
-      </header>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={handleImageSelected}
+      />
 
       <Toolbar
         editor={editor}
         visible={toolbarVisible}
         onToggleVisible={() => setToolbarVisible((value) => !value)}
         onPickImage={openImagePicker}
+        onExportPdf={() => onExportPdf(editor?.getHTML() ?? "")}
+        isExporting={isExporting}
       />
 
       <div className="document-stage">

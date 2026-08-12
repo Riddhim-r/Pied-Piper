@@ -6,6 +6,7 @@ import {
   Code2,
   Columns3,
   Eraser,
+  FileDown,
   Heading1,
   Heading2,
   Heading3,
@@ -34,6 +35,8 @@ type ToolbarProps = {
   visible: boolean;
   onToggleVisible: () => void;
   onPickImage: () => void;
+  onExportPdf?: () => void;
+  isExporting?: boolean;
 };
 
 type ToolbarSection = {
@@ -102,7 +105,14 @@ function ToolbarAction({
   );
 }
 
-export function Toolbar({ editor, visible, onToggleVisible, onPickImage }: ToolbarProps) {
+export function Toolbar({
+  editor,
+  visible,
+  onToggleVisible,
+  onPickImage,
+  onExportPdf,
+  isExporting
+}: ToolbarProps) {
   const [activeSection, setActiveSection] = useState("text");
   const [showTextSizeMenu, setShowTextSizeMenu] = useState(false);
 
@@ -419,6 +429,9 @@ export function Toolbar({ editor, visible, onToggleVisible, onPickImage }: Toolb
   return (
     <div className="toolbar-shell">
       <div className="toolbar-shell__top">
+        <span className="toolbar-shell__metric">
+          {(editor?.storage.characterCount.characters() ?? 0).toLocaleString()} characters
+        </span>
         <button
           type="button"
           className="icon-button workspace__action-button toolbar-shell__toggle"
@@ -449,6 +462,18 @@ export function Toolbar({ editor, visible, onToggleVisible, onPickImage }: Toolb
                 {section.icon}
               </button>
             ))}
+            {onExportPdf ? (
+              <button
+                type="button"
+                className="toolbar-ribbon__tab workspace__action-button"
+                onClick={() => onExportPdf()}
+                disabled={isExporting}
+                aria-label={isExporting ? "Exporting..." : "Export PDF"}
+                data-tooltip={isExporting ? "Exporting..." : "Export PDF"}
+              >
+                <FileDown size={18} strokeWidth={2.1} />
+              </button>
+            ) : null}
           </div>
 
           <div className="toolbar-ribbon__tray" role="tabpanel" aria-label={currentSection.label}>

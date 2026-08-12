@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { List, Maximize2, Minimize2, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { List, Maximize2, Minimize2, Save, Trash2, X } from "lucide-react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { EditorPane } from "../components/EditorPane";
 import { OutlinePanel } from "../components/OutlinePanel";
@@ -46,11 +46,37 @@ function AppShell() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [autoOpenNotebook, setAutoOpenNotebook] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [showNavigation, setShowNavigation] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
+  const tagComboboxRef = useRef<HTMLDivElement | null>(null);
+
+  const normalizedDraftTag = draftTag.trim();
+  const draftTagQuery = normalizedDraftTag.toLowerCase();
+  const hasExactDraftTagMatch = useMemo(
+    () => tags.some((value) => value.toLowerCase() === draftTagQuery),
+    [tags, draftTagQuery]
+  );
+  const filteredDraftTags = useMemo(() => {
+    if (!normalizedDraftTag) {
+      return tags;
+    }
+    return tags.filter((value) => value.toLowerCase().includes(draftTagQuery));
+  }, [tags, normalizedDraftTag, draftTagQuery]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (tagComboboxRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setIsTagMenuOpen(false);
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
 
   const toggleTheme = () => {
     setNotesTheme((current) => {
@@ -70,8 +96,7 @@ function AppShell() {
     draftPlainTextLength === 0 &&
     draftContentJson === EMPTY_DOC;
 
-  const refreshSidebarData = useCallback(async (options?: { autoOpen?: boolean }) => {
-    const shouldAutoOpen = options?.autoOpen ?? autoOpenNotebook;
+  const refreshSidebarData = useCallback(async () => {
     const [loadedNotebooks, loadedTags] = await Promise.all([
       listNotebooks({
         search,
@@ -93,13 +118,9 @@ function AppShell() {
         return current;
       }
 
-      if (!shouldAutoOpen) {
-        return null;
-      }
-
-      return loadedNotebooks[0].id;
+      return null;
     });
-  }, [activeTag, autoOpenNotebook, search]);
+  }, [activeTag, search]);
 
   useEffect(() => {
     void refreshSidebarData();
@@ -320,7 +341,6 @@ function AppShell() {
     }
 
     const notebook = await createNotebook("");
-    setAutoOpenNotebook(true);
     setNotebooks((current) => [
       notebook,
       ...current.filter((item) => item.id !== notebook.id)
@@ -340,7 +360,6 @@ function AppShell() {
 
   const clearCurrentNotebook = () => {
     setSelectedId(null);
-    setAutoOpenNotebook(false);
     setCurrentNotebook(null);
     setOutline([]);
     setJumpToHeading(() => () => undefined);
@@ -432,7 +451,7 @@ function AppShell() {
     await permanentlyDeleteNotebook(currentNotebook.id);
     clearCurrentNotebook();
     setSaveMessage("Notebook deleted.");
-    await refreshSidebarData({ autoOpen: false });
+    await refreshSidebarData();
   };
 
   return (
@@ -460,7 +479,6 @@ function AppShell() {
               return;
             }
 
-            setAutoOpenNotebook(true);
             setSelectedId(id);
             setShowShortcuts(false);
             navigate("/notes");
@@ -493,10 +511,81 @@ function AppShell() {
               ) : currentNotebook ? (
                 <>
                   <div className="workspace__topbar">
-                    <div>
-                      <strong>Editor</strong>
+                    <div className="workspace__topbar-inputs">
+                      <input
+                        className={`title-input${titleError ? " is-invalid" : ""}`}
+                        value={draftTitle}
+                        maxLength={100}
+                        placeholder="Notebook title..."
+                        onChange={(event) => setDraftTitle(event.target.value.slice(0, 100))}
+                      />
+                      <div className="tag-combobox" ref={tagComboboxRef}>
+                        <input
+                          className="tag-input"
+                          value={draftTag}
+                          maxLength={40}
+                          onFocus={() => setIsTagMenuOpen(true)}
+                          onClick={() => setIsTagMenuOpen(true)}
+                          onChange={(event) => {
+                            setDraftTag(event.target.value.slice(0, 40));
+                            setIsTagMenuOpen(true);
+                          }}
+                          placeholder="Tag..."
+                        />
+                        {isTagMenuOpen ? (
+                          <div className="tag-combobox__menu">
+                            {filteredDraftTags.map((value) => (
+                              <button
+                                key={value}
+                                type="button"
+                                className={`tag-combobox__option${normalizedDraftTag.toLowerCase() === value.toLowerCase() ? " is-active" : ""}`}
+                                onClick={() => {
+                                  setDraftTag(value);
+                                  setIsTagMenuOpen(false);
+                                }}
+                              >
+                                {value}
+                              </button>
+                            ))}
+                            {normalizedDraftTag && !hasExactDraftTagMatch ? (
+                              <button
+                                type="button"
+                                className="tag-combobox__option tag-combobox__option--create"
+                                onClick={() => {
+                                  setDraftTag(normalizedDraftTag.slice(0, 40));
+                                  setIsTagMenuOpen(false);
+                                }}
+                              >
+                                Create tag
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
+
                     <div className="workspace__actions">
+                      <span className="workspace__topbar-status">
+                        {saveMessage ? (
+                          saveMessage
+                        ) : isCurrentDraftBlank ? null : isSaving ? (
+                          "Saving..."
+                        ) : lastSavedAt ? (
+                          "Saved"
+                        ) : (
+                          "Unsaved changes"
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        className="icon-button workspace__action-button"
+                        onClick={() => void persist()}
+                        disabled={isSaving}
+                        aria-label={isSaving ? "Saving..." : "Save notebook (Ctrl+S)"}
+                        data-tooltip={isSaving ? "Saving..." : "Save (Ctrl+S)"}
+                      >
+                        <Save size={18} strokeWidth={2.1} />
+                      </button>
                       <button
                         type="button"
                         className="icon-button workspace__action-button"
@@ -543,20 +632,11 @@ function AppShell() {
                   <EditorPane
                     key={currentNotebook.id}
                     notebook={currentNotebook}
-                    title={draftTitle}
-                    tag={draftTag}
-                    availableTags={tags}
-                    onTitleChange={setDraftTitle}
-                    onTagChange={setDraftTag}
                     onDraftChange={handleDraftChange}
                     onUploadImage={handleImageUpload}
                     onSave={() => void persist()}
                     onExportPdf={(contentHtml) => void handleExportPdf(contentHtml)}
-                    isSaving={isSaving}
                     isExporting={isExporting}
-                    lastSavedAt={lastSavedAt}
-                    titleError={titleError}
-                    saveMessage={saveMessage}
                     onOutlineChange={(nextOutline, jump) => {
                       setOutline(nextOutline);
                       setJumpToHeading(() => jump);

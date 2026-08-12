@@ -177,7 +177,13 @@ export function Sidebar({
                 </strong>
                 {notebook.tag ? <span className="note-list__tag">{notebook.tag}</span> : null}
               </div>
-              <span className="note-list__meta">{new Date(notebook.updatedAt).toLocaleString()}</span>
+              <span className="note-list__meta">
+                {new Date(notebook.updatedAt).toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                })}
+              </span>
             </button>
           ))
         )}

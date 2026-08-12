@@ -99,12 +99,25 @@ const TodoPage = () => {
     setBusyTaskId(taskId)
     setError('')
 
+    // Optimistically update task status so scroll position remains fixed in place
+    setTodoState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((task) =>
+        task.id === taskId ? { ...task, isCompleted } : task
+      ),
+    }))
+
     try {
       await setTodoTaskCompleted(taskId, isCompleted)
-      await loadTodo()
+      const freshState = await getTodoState()
+      setTodoState(freshState)
     } catch (toggleError) {
       console.error(toggleError)
       setError(getErrorMessage(toggleError, 'Could not update the task.'))
+      try {
+        const freshState = await getTodoState()
+        setTodoState(freshState)
+      } catch {}
     } finally {
       setBusyTaskId(null)
     }

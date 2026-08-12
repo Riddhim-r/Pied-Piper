@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import TopNav from '../../../components/TopNav'
 import LogoutButton from '../../../components/LogoutButton'
 import PageHeader from '../../../components/PageHeader'
@@ -8,7 +8,7 @@ const DashboardPage = () => {
     <div className="page">
       <TopNav
         title="Pied Piper"
-        subtitle="Bread-winner workspace"
+        subtitle="The Bread-winner's workspace"
         rightSlot={<LogoutButton />}
       />
       <div className="content">

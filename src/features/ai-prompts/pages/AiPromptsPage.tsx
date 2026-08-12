@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { desktopApi } from '../../../lib/desktopApi'
 import ConfirmDialog from '../../../components/ConfirmDialog'
@@ -16,6 +16,7 @@ const AiPromptsPage = () => {
   const [activeTag, setActiveTag] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
 
   const [title, setTitle] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
@@ -34,10 +35,9 @@ const AiPromptsPage = () => {
       } catch (loadError) {
         console.error(loadError)
         setError('Unable to load the AI Prompt Vault.')
+      } finally {
         setIsLoading(false)
-        return
       }
-      setIsLoading(false)
     }
 
     loadEntries()
@@ -51,6 +51,10 @@ const AiPromptsPage = () => {
       }
     }
   }, [entries, activeTag])
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
   const allTags = useMemo(() => {
     const tagSet = new Set<string>()
@@ -218,7 +222,7 @@ const AiPromptsPage = () => {
       <div className="content">
         <ConfirmDialog
           open={pendingDeleteId !== null}
-          title="Delete AI Prompt Vault Entry?"
+          title="Delete Prompt?"
           message="This prompt will move to the Recycle Bin and can be restored later."
           confirmText="Delete"
           cancelText="Cancel"
@@ -229,7 +233,7 @@ const AiPromptsPage = () => {
         <div className="page-header">
           <div>
             <h1>AI Prompt Vault</h1>
-            <p>Reusable prompts with tags and line-wise structure.</p>
+            <p>Save structured prompts for all types of AI assistants</p>
           </div>
           <button
             className="btn primary"
@@ -242,7 +246,7 @@ const AiPromptsPage = () => {
               }
             }}
           >
-            Add prompt
+            Add Prompt
           </button>
         </div>
 
@@ -270,7 +274,12 @@ const AiPromptsPage = () => {
           <div className="card form-grid">
             <label className="field">
               <span>Prompt title</span>
-              <input value={title} onChange={(event) => setTitle(event.target.value)} />
+              <input
+                type="text"
+                placeholder="e.g. Code Refactor Assistant"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
             </label>
 
             <div className="field">
@@ -318,10 +327,10 @@ const AiPromptsPage = () => {
             </div>
 
             <label className="field">
-              <span>Prompt lines</span>
+              <span>Prompt content (supports multiline text & spacing)</span>
               <textarea
-                rows={5}
-                placeholder="Write each line on a new line"
+                rows={7}
+                placeholder="Write your prompt content here... (supports paragraphs & line breaks)"
                 value={stepsText}
                 onChange={(event) => setStepsText(event.target.value)}
               />
@@ -365,36 +374,108 @@ const AiPromptsPage = () => {
           </div>
         ) : null}
 
-        <div className="stack">
-          {visibleEntries.map((entry) => (
-            <div className="card" key={entry.id}>
-              <div className="card-head">
-                <h3>{entry.title}</h3>
-                <div className="pill-row">
-                  {entry.tags.map((tag) => (
-                    <span className="pill" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
+        <div className="stack" style={{ gap: '20px' }}>
+          {visibleEntries.map((entry) => {
+            const isExpanded = Boolean(expandedIds[entry.id])
+            const totalLines = entry.steps.length
+            const isLong = totalLines > 5
+            const displayedSteps = isLong && !isExpanded ? entry.steps.slice(0, 5) : entry.steps
+
+            return (
+              <div className="card" key={entry.id} style={{ padding: '20px 24px' }}>
+                <div className="card-head" style={{ marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{entry.title}</h3>
+                  <div className="pill-row">
+                    {entry.tags.map((tag) => (
+                      <span className="pill" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  className="steps"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.6,
+                    color: '#2a2a32',
+                    fontSize: '0.96rem',
+                    marginBottom: '16px'
+                  }}
+                >
+                  {displayedSteps.map((step, index) => {
+                    const isLastTruncatedLine = isLong && !isExpanded && index === 4
+                    return (
+                      <p className="step-line" key={`${entry.id}-${index}`} style={{ margin: 0 }}>
+                        {step}
+                        {isLastTruncatedLine ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
+                            <span>....</span>
+                            <button
+                              type="button"
+                              className="btn ghost"
+                              style={{
+                                fontSize: '0.70rem',
+                                padding: '2px 8px',
+                                height: 'auto',
+                                minHeight: 'unset',
+                                lineHeight: 1.2
+                              }}
+                              onClick={() => toggleExpand(entry.id)}
+                            >
+                              Show more ▼
+                            </button>
+                          </span>
+                        ) : null}
+                      </p>
+                    )
+                  })}
+                </div>
+
+                {isLong && isExpanded ? (
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    style={{
+                      marginBottom: '12px',
+                      fontSize: '0.70rem',
+                      padding: '2px 8px',
+                      height: 'auto',
+                      minHeight: 'unset',
+                      lineHeight: 1.2,
+                      alignSelf: 'flex-start'
+                    }}
+                    onClick={() => toggleExpand(entry.id)}
+                  >
+                    Show less ▲
+                  </button>
+                ) : null}
+
+                <div className="card-actions" style={{ gap: '8px' }}>
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem', height: 'auto', minHeight: 'unset' }}
+                    onClick={() => handleEdit(entry)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn danger"
+                    type="button"
+                    style={{ padding: '4px 10px', fontSize: '0.78rem', height: 'auto', minHeight: 'unset' }}
+                    onClick={() => handleDelete(entry.id)}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
-              <div className="steps">
-                {entry.steps.map((step, index) => (
-                  <p className="step-line" key={`${entry.id}-${index}`}>
-                    {step}
-                  </p>
-                ))}
-              </div>
-              <div className="card-actions">
-                <button className="btn ghost" type="button" onClick={() => handleEdit(entry)}>
-                  Edit
-                </button>
-                <button className="btn danger" type="button" onClick={() => handleDelete(entry.id)}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>
@@ -402,4 +483,3 @@ const AiPromptsPage = () => {
 }
 
 export default AiPromptsPage
-

@@ -97,13 +97,13 @@ const GlobalKeyboardShortcuts = () => {
         }
       }
 
-      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-        if (event.key === 'ArrowLeft') {
+      if (event.altKey && !event.ctrlKey && !event.metaKey) {
+        if (event.key === 'ArrowLeft' || event.key === '<' || event.key === ',') {
           event.preventDefault()
           navigate(-1)
           return
         }
-        if (event.key === 'ArrowRight') {
+        if (event.key === 'ArrowRight' || event.key === '>' || event.key === '.') {
           event.preventDefault()
           navigate(1)
           return

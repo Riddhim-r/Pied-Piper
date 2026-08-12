@@ -29,7 +29,7 @@ type ShortcutsViewProps = {
 
 export function ShortcutsView({ onClose }: ShortcutsViewProps) {
   return (
-    <section className="shortcuts-view">
+    <section className="shortcuts-view" style={{ flex: 1, height: "100%", overflowY: "auto", padding: "24px 28px 40px" }}>
       <div className="shortcuts-view__header">
         <div className="shortcuts-view__intro">
           <h2>Keyboard shortcuts</h2>

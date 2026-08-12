@@ -1,7 +1,7 @@
 type HelpPromptPayload = {
   title: string
   tags: string[]
-  steps: string[]
+  steps: (string | { title?: string; text: string })[]
 }
 
 type EncyclopediaTopicPayload = {

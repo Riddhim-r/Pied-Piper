@@ -427,11 +427,8 @@ export function Toolbar({
   const currentSection = toolbarSections.find((section) => section.id === activeSection) ?? toolbarSections[0];
 
   return (
-    <div className="toolbar-shell">
+    <div className={`toolbar-shell${visible ? "" : " is-minimized"}`}>
       <div className="toolbar-shell__top">
-        <span className="toolbar-shell__metric">
-          {(editor?.storage.characterCount.characters() ?? 0).toLocaleString()} characters
-        </span>
         <button
           type="button"
           className="icon-button workspace__action-button toolbar-shell__toggle"
@@ -445,35 +442,41 @@ export function Toolbar({
 
       {visible ? (
         <div className="toolbar-ribbon">
-          <div className="toolbar-ribbon__tabs" role="tablist" aria-label="Toolbar sections">
-            {toolbarSections.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                role="tab"
-                aria-selected={currentSection.id === section.id}
-                className={`toolbar-ribbon__tab workspace__action-button${
-                  currentSection.id === section.id ? " is-active" : ""
-                }`}
-                onClick={() => setActiveSection(section.id)}
-                aria-label={section.label}
-                data-tooltip={section.label}
-              >
-                {section.icon}
-              </button>
-            ))}
-            {onExportPdf ? (
-              <button
-                type="button"
-                className="toolbar-ribbon__tab workspace__action-button"
-                onClick={() => onExportPdf()}
-                disabled={isExporting}
-                aria-label={isExporting ? "Exporting..." : "Export PDF"}
-                data-tooltip={isExporting ? "Exporting..." : "Export PDF"}
-              >
-                <FileDown size={18} strokeWidth={2.1} />
-              </button>
-            ) : null}
+          <div className="toolbar-ribbon__header">
+            <div className="toolbar-ribbon__tabs" role="tablist" aria-label="Toolbar sections">
+              {toolbarSections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={currentSection.id === section.id}
+                  className={`toolbar-ribbon__tab workspace__action-button${
+                    currentSection.id === section.id ? " is-active" : ""
+                  }`}
+                  onClick={() => setActiveSection(section.id)}
+                  aria-label={section.label}
+                  data-tooltip={section.label}
+                >
+                  {section.icon}
+                </button>
+              ))}
+              {onExportPdf ? (
+                <button
+                  type="button"
+                  className="toolbar-ribbon__tab workspace__action-button"
+                  onClick={() => onExportPdf()}
+                  disabled={isExporting}
+                  aria-label={isExporting ? "Exporting..." : "Export PDF"}
+                  data-tooltip={isExporting ? "Exporting..." : "Export PDF"}
+                >
+                  <FileDown size={18} strokeWidth={2.1} />
+                </button>
+              ) : null}
+            </div>
+
+            <span className="toolbar-shell__metric">
+              {(editor?.storage.characterCount.characters() ?? 0).toLocaleString()} characters
+            </span>
           </div>
 
           <div className="toolbar-ribbon__tray" role="tabpanel" aria-label={currentSection.label}>

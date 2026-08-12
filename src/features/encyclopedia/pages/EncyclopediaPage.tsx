@@ -210,7 +210,11 @@ const EncyclopediaPage = () => {
                     <p>{topic.description || 'No description yet.'}</p>
                   </div>
                   <span className="pill">
-                    Updated {new Date(topic.updatedAt).toLocaleString()}
+                    Updated {new Date(topic.updatedAt).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
                   </span>
                 </div>
 

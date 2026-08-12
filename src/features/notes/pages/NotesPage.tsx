@@ -588,12 +588,12 @@ function AppShell() {
                       </button>
                       <button
                         type="button"
-                        className="icon-button workspace__action-button"
-                        onClick={() => void handleCloseNotebook()}
-                        aria-label="Close notebook"
-                        data-tooltip="Close notebook"
+                        className="icon-button icon-button--danger workspace__action-button"
+                        onClick={() => void handleDeleteNotebook()}
+                        aria-label="Delete notebook"
+                        data-tooltip="Delete notebook"
                       >
-                        <X size={18} strokeWidth={2.1} />
+                        <Trash2 size={18} strokeWidth={2.1} />
                       </button>
                       <button
                         type="button"
@@ -619,12 +619,12 @@ function AppShell() {
                       </button>
                       <button
                         type="button"
-                        className="icon-button icon-button--danger workspace__action-button"
-                        onClick={() => void handleDeleteNotebook()}
-                        aria-label="Delete notebook"
-                        data-tooltip="Delete notebook"
+                        className="icon-button workspace__action-button"
+                        onClick={() => void handleCloseNotebook()}
+                        aria-label="Close notebook"
+                        data-tooltip="Close notebook"
                       >
-                        <Trash2 size={18} strokeWidth={2.1} />
+                        <X size={18} strokeWidth={2.1} />
                       </button>
                     </div>
                   </div>

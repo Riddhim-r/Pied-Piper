@@ -13,9 +13,7 @@ import {
   listNotebooks,
   listTags,
   permanentlyDeleteNotebook,
-  restoreNotebook,
   saveNotebook,
-  softDeleteNotebook,
   storeImage
 } from "../services/notesService";
 import type { EditorDraft, NotebookRecord, NotebookSummary, OutlineHeading } from "../types";
@@ -30,7 +28,9 @@ function AppShell() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [showTrash, setShowTrash] = useState(false);
+  const [notesTheme, setNotesTheme] = useState<"light" | "dark">(() => {
+    return (localStorage.getItem("notes_theme") as "light" | "dark") || "light";
+  });
   const [notebooks, setNotebooks] = useState<NotebookSummary[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -46,11 +46,19 @@ function AppShell() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [autoOpenNotebook, setAutoOpenNotebook] = useState(true);
+  const [autoOpenNotebook, setAutoOpenNotebook] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [showNavigation, setShowNavigation] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  const toggleTheme = () => {
+    setNotesTheme((current) => {
+      const next = current === "light" ? "dark" : "light";
+      localStorage.setItem("notes_theme", next);
+      return next;
+    });
+  };
 
   const isShortcutsPage = showShortcuts;
   const canShowNavigation = !isShortcutsPage && !isFocusMode && currentNotebook != null;
@@ -67,8 +75,8 @@ function AppShell() {
     const [loadedNotebooks, loadedTags] = await Promise.all([
       listNotebooks({
         search,
-        tag: showTrash ? null : activeTag,
-        includeTrashed: showTrash
+        tag: activeTag,
+        includeTrashed: false
       }),
       listTags()
     ]);
@@ -85,13 +93,13 @@ function AppShell() {
         return current;
       }
 
-        if (!shouldAutoOpen) {
-          return null;
-        }
+      if (!shouldAutoOpen) {
+        return null;
+      }
 
-        return loadedNotebooks[0].id;
-      });
-  }, [activeTag, autoOpenNotebook, search, showTrash]);
+      return loadedNotebooks[0].id;
+    });
+  }, [activeTag, autoOpenNotebook, search]);
 
   useEffect(() => {
     void refreshSidebarData();
@@ -408,53 +416,30 @@ function AppShell() {
     }
   };
 
-  const handleSoftDelete = async () => {
+  const handleDeleteNotebook = async () => {
     if (!currentNotebook) {
       return;
     }
 
     const confirmed = window.confirm(
-      `Move "${currentNotebook.title}" to trash? You can restore it later from Trash.`
+      `Delete "${currentNotebook.title}"? This notebook will be removed.`
     );
 
     if (!confirmed) {
       return;
     }
 
-    await softDeleteNotebook(currentNotebook.id);
-    clearCurrentNotebook();
-    setSaveMessage("Moved notebook to trash.");
-    await refreshSidebarData({ autoOpen: false });
-  };
-
-  const handleRestore = async () => {
-    if (!currentNotebook) {
-      return;
-    }
-
-    await restoreNotebook(currentNotebook.id);
-    setShowTrash(false);
-    setAutoOpenNotebook(true);
-    setSaveMessage("Notebook restored.");
-    await refreshSidebarData();
-  };
-
-  const handlePermanentDelete = async () => {
-    if (!currentNotebook) {
-      return;
-    }
-
     await permanentlyDeleteNotebook(currentNotebook.id);
     clearCurrentNotebook();
-    setSaveMessage("Notebook deleted permanently.");
+    setSaveMessage("Notebook deleted.");
     await refreshSidebarData({ autoOpen: false });
   };
 
   return (
     <div
-      className={`notes-feature app-shell${isFocusMode ? " is-focus-mode" : ""}${
-        canShowNavigation && showNavigation ? " has-outline-panel" : ""
-      }`}
+      className={`notes-feature app-shell ${notesTheme === "dark" ? "is-dark" : "is-light"}${
+        isFocusMode ? " is-focus-mode" : ""
+      }${canShowNavigation && showNavigation ? " has-outline-panel" : ""}`}
     >
       <Sidebar
         notebooks={notebooks}
@@ -463,7 +448,8 @@ function AppShell() {
         onSearchChange={setSearch}
         activeTag={activeTag}
         tags={tags}
-        showTrash={showTrash}
+        theme={notesTheme}
+        onToggleTheme={toggleTheme}
         onSelectNote={(id) => {
           void (async () => {
             if (id === selectedId) {
@@ -484,20 +470,6 @@ function AppShell() {
         onCreateNote={() => void handleCreateNotebook()}
         onSetActiveTag={(tag) => {
           setActiveTag(tag);
-          setShowTrash(false);
-        }}
-        onToggleTrash={() => {
-          void (async () => {
-            if (!(await confirmNotebookTransition())) {
-              return;
-            }
-
-            clearCurrentNotebook();
-            setShowTrash((value) => !value);
-            setAutoOpenNotebook(false);
-            setShowShortcuts(false);
-            navigate("/notes");
-          })();
         }}
         onShowShortcuts={() => {
           void (async () => {
@@ -522,66 +494,49 @@ function AppShell() {
                 <>
                   <div className="workspace__topbar">
                     <div>
-                      <strong>{showTrash ? "Trash" : "Editor"}</strong>
+                      <strong>Editor</strong>
                     </div>
                     <div className="workspace__actions">
-                      {!showTrash ? (
-                        <>
-                          <button
-                            type="button"
-                            className="icon-button workspace__action-button"
-                            onClick={() => void handleCloseNotebook()}
-                            aria-label="Close notebook"
-                            data-tooltip="Close notebook"
-                          >
-                            <X size={18} strokeWidth={2.1} />
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-button workspace__action-button"
-                            onClick={() => setIsFocusMode((value) => !value)}
-                            aria-label={isFocusMode ? "Exit focus mode" : "Focus mode"}
-                            data-tooltip={isFocusMode ? "Exit focus mode" : "Focus mode"}
-                          >
-                            {isFocusMode ? (
-                              <Minimize2 size={18} strokeWidth={2.1} />
-                            ) : (
-                              <Maximize2 size={18} strokeWidth={2.1} />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-button workspace__action-button"
-                            onClick={() => setShowNavigation((value) => !value)}
-                            aria-label={showNavigation ? "Hide navigation" : "Navigate"}
-                            data-tooltip={showNavigation ? "Hide navigation" : "Navigate"}
-                          >
-                            <List size={18} strokeWidth={2.1} />
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-button icon-button--danger workspace__action-button"
-                            onClick={() => void handleSoftDelete()}
-                            aria-label="Move notebook to trash"
-                            data-tooltip="Move to trash"
-                          >
-                            <Trash2 size={18} strokeWidth={2.1} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button type="button" className="ghost-button" onClick={() => void handleRestore()}>
-                            Restore
-                          </button>
-                          <button
-                            type="button"
-                            className="danger-button"
-                            onClick={() => void handlePermanentDelete()}
-                          >
-                            Delete permanently
-                          </button>
-                        </>
-                      )}
+                      <button
+                        type="button"
+                        className="icon-button workspace__action-button"
+                        onClick={() => void handleCloseNotebook()}
+                        aria-label="Close notebook"
+                        data-tooltip="Close notebook"
+                      >
+                        <X size={18} strokeWidth={2.1} />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button workspace__action-button"
+                        onClick={() => setIsFocusMode((value) => !value)}
+                        aria-label={isFocusMode ? "Exit focus mode" : "Focus mode"}
+                        data-tooltip={isFocusMode ? "Exit focus mode" : "Focus mode"}
+                      >
+                        {isFocusMode ? (
+                          <Minimize2 size={18} strokeWidth={2.1} />
+                        ) : (
+                          <Maximize2 size={18} strokeWidth={2.1} />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button workspace__action-button"
+                        onClick={() => setShowNavigation((value) => !value)}
+                        aria-label={showNavigation ? "Hide navigation" : "Navigate"}
+                        data-tooltip={showNavigation ? "Hide navigation" : "Navigate"}
+                      >
+                        <List size={18} strokeWidth={2.1} />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-button icon-button--danger workspace__action-button"
+                        onClick={() => void handleDeleteNotebook()}
+                        aria-label="Delete notebook"
+                        data-tooltip="Delete notebook"
+                      >
+                        <Trash2 size={18} strokeWidth={2.1} />
+                      </button>
                     </div>
                   </div>
 

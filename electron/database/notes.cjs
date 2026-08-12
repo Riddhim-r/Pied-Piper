@@ -129,7 +129,7 @@ const saveNotebook = (database, payload) => {
   if (!Number.isInteger(plainTextLength) || plainTextLength < 0) {
     throw new Error('Notebook character count is invalid.')
   }
-  if (plainTextLength > 10_000) {
+  if (plainTextLength > 1_000_000) {
     throw new Error('Notebook text limit exceeded.')
   }
 

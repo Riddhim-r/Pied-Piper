@@ -626,7 +626,7 @@
 }
 
 .toolbar-action__stack .toolbar-action__badge,
-.toolbar-action__stack svg + svg {
+.toolbar-action__stack svg+svg {
   position: absolute;
   right: -5px;
   bottom: -4px;
@@ -774,7 +774,7 @@
   color: #24303a;
 }
 
-.editor-surface > * + * {
+.editor-surface>*+* {
   margin-top: 1.08em;
 }
 
@@ -843,7 +843,7 @@
   list-style: decimal outside !important;
 }
 
-.editor-surface ol[data-list-style-type] > li {
+.editor-surface ol[data-list-style-type]>li {
   display: list-item !important;
 }
 
@@ -855,8 +855,8 @@
   padding-left: 0 !important;
 }
 
-.notes-feature .editor-surface ul.notebook-task-list > li.notebook-task-item,
-.notes-feature .editor-surface ul[data-type="taskList"] > li[data-type="taskItem"] {
+.notes-feature .editor-surface ul.notebook-task-list>li.notebook-task-item,
+.notes-feature .editor-surface ul[data-type="taskList"]>li[data-type="taskItem"] {
   display: grid !important;
   grid-template-columns: 22px minmax(0, 1fr) !important;
   align-items: start !important;
@@ -865,8 +865,8 @@
   padding: 0 !important;
 }
 
-.notes-feature .editor-surface li.notebook-task-item > label,
-.notes-feature .editor-surface li[data-type="taskItem"] > label {
+.notes-feature .editor-surface li.notebook-task-item>label,
+.notes-feature .editor-surface li[data-type="taskItem"]>label {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
@@ -875,24 +875,24 @@
   grid-row: 1;
 }
 
-.notes-feature .editor-surface li.notebook-task-item > label input,
-.notes-feature .editor-surface li[data-type="taskItem"] > label input {
+.notes-feature .editor-surface li.notebook-task-item>label input,
+.notes-feature .editor-surface li[data-type="taskItem"]>label input {
   width: 18px;
   height: 18px;
   margin: 0;
   accent-color: var(--accent-2);
 }
 
-.notes-feature .editor-surface li.notebook-task-item > div,
-.notes-feature .editor-surface li[data-type="taskItem"] > div {
+.notes-feature .editor-surface li.notebook-task-item>div,
+.notes-feature .editor-surface li[data-type="taskItem"]>div {
   flex: 1;
   min-width: 0;
   grid-column: 2;
   grid-row: 1;
 }
 
-.notes-feature .editor-surface li.notebook-task-item > div > p,
-.notes-feature .editor-surface li[data-type="taskItem"] > div > p {
+.notes-feature .editor-surface li.notebook-task-item>div>p,
+.notes-feature .editor-surface li[data-type="taskItem"]>div>p {
   margin: 0 !important;
   min-height: 1.75rem;
 }
@@ -1379,4 +1379,89 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.notes-feature.is-dark {
+  --bg: #18181c;
+  --bg-2: #212128;
+  --panel: #22222a;
+  --panel-strong: #2d2d38;
+  --line: rgba(255, 255, 255, 0.15);
+  --line-strong: #e4e4e8;
+  --text: #f0f0f4;
+  --ink: #f0f0f4;
+  --muted: #a49bb0;
+  --card: #22222a;
+  --paper: #1f1f26;
+  --paper-line: rgba(255, 255, 255, 0.08);
+  --sidebar-bg: #202027;
+  --sidebar-text: #f0f0f4;
+  --sidebar-muted: #9b92a6;
+  --sidebar-line: rgba(255, 255, 255, 0.12);
+  --sidebar-card: #282832;
+  --sidebar-card-active: #5b7fa4;
+  --accent: #5b7fa4;
+  --accent-strong: #78a3d4;
+  --shadow: 0 14px 0 rgba(0, 0, 0, 0.45);
+}
+
+.notes-feature.is-dark .search-shell input,
+.notes-feature.is-dark .title-input,
+.notes-feature.is-dark .tag-input {
+  background: #2a2a34;
+  color: #f0f0f4;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.notes-feature.is-dark .editor-surface {
+  color: #e6e6ea;
+}
+
+.notes-feature.is-dark .editor-surface h1,
+.notes-feature.is-dark .editor-surface h2,
+.notes-feature.is-dark .editor-surface h3 {
+  color: #a2c4ec;
+}
+
+.notes-feature.is-dark .document-stage {
+  background: #18181c;
+}
+
+.notes-feature.is-dark .document-paper {
+  background: #1f1f26;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.notes-feature.is-dark .ghost-button,
+.notes-feature.is-dark .icon-button,
+.notes-feature.is-dark .toolbar-ribbon__tab,
+.notes-feature.is-dark .toolbar-action {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #2a2a35;
+  color: #e4e4e8;
+}
+
+.notes-feature.is-dark .workspace__topbar {
+  background: #202027;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.notes-feature.is-dark .toolbar-ribbon__tray {
+  background: #262630;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.notes-feature.is-dark .tag-combobox__menu {
+  background: #252530;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.notes-feature.is-dark .tag-combobox__option {
+  color: #f0f0f4;
+}
+
+.notes-feature.is-dark .tag-combobox__option:hover,
+.notes-feature.is-dark .tag-combobox__option.is-active {
+  background: rgba(120, 163, 212, 0.22);
 }

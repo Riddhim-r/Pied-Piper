@@ -61,7 +61,7 @@ assert.throws(
       title: first.title,
       tag: null,
       contentJson: documentJson,
-      plainTextLength: 10_001,
+      plainTextLength: 1_000_001,
     }),
   /text limit exceeded/,
 )

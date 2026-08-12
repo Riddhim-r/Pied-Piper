@@ -207,7 +207,7 @@ const registerIpcHandlers = () => {
     const ownerWindow = BrowserWindow.fromWebContents(event.sender)
     const result = await dialog.showSaveDialog(ownerWindow, {
       title: 'Export notebook as PDF',
-      defaultPath: `${safeFilename}.pdf`,
+      defaultPath: path.join(app.getPath('downloads'), `${safeFilename}.pdf`),
       filters: [{ name: 'PDF document', extensions: ['pdf'] }],
     })
 
@@ -340,7 +340,7 @@ const registerIpcHandlers = () => {
     const result = await dialog.showSaveDialog(ownerWindow, {
       title: 'Export database',
       defaultPath: path.join(
-        app.getPath('documents'),
+        app.getPath('downloads'),
         `pied-piper-database-${new Date().toISOString().slice(0, 10)}.db`,
       ),
       filters: [{ name: 'SQLite database', extensions: ['db', 'sqlite', 'sqlite3'] }],

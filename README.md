@@ -1,18 +1,19 @@
 # Pied Piper
 
-Pied Piper is a private, single-user desktop workspace for personal knowledge, reusable solutions, AI prompts, notes, useful links, and focused task management.
+Pied Piper is a private, single-user desktop workspace built to serve as a **lifelong personal knowledge vault and educational storage companion**. It organizes your study notes, solutions, AI prompt engineering workflows, subject topic collections, and task lists into one permanent, self-contained desktop system.
 
-The application combines seven independent tools:
+Whether you are capturing lecture notes, building technical wisdom during your career, storing academic research, or organizing AI prompts, Pied Piper stays locally on your computer—growing with you through school, college, career, and beyond.
 
-- Helpbook
-- AI Prompt Vault
-- Notes for Noobs
-- Encyclopedia
-- Todo
-- Recycle Bin
-- Settings
+The application combines six primary workspace modules:
 
-Pied Piper is built with Electron, React, TypeScript, Vite, and SQLite. All application data is stored locally. It does not require Supabase, a cloud account, or an internet connection for normal data management.
+- Notes for Noobs (Rich document editor with Smart Pasting, Light/Dark themes, and 1M character limit)
+- Helpbook (Technical solution & wisdom library)
+- AI Prompt Vault (Prompt engineering template library)
+- Encyclopedia (Topic hierarchy & reference link directory)
+- Todo (Focused task list)
+- Settings (Custom themes, local database exports & backups)
+
+Pied Piper is built with Electron, React, TypeScript, Vite, and SQLite. All application data is stored 100% locally. It requires no cloud accounts, no subscription fees, and no internet connection—ensuring your lifetime knowledge remains private, secure, and accessible forever.
 
 ## Table of Contents
 
@@ -33,17 +34,16 @@ Pied Piper is built with Electron, React, TypeScript, Vite, and SQLite. All appl
 
 ## Purpose and Design
 
-Pied Piper is designed as one personal desktop application rather than a multi-user platform.
+Pied Piper is designed as your personal lifelong desktop workspace rather than a multi-user cloud service.
 
 Its main goals are:
 
-- Keep personal information in one local SQLite database.
-- Separate different kinds of information into focused modules.
-- Make commonly used knowledge easy to find and reuse.
-- Avoid unnecessary accounts, roles, permissions, and cloud dependencies.
-- Use simple workflows with clear rules.
-- Protect deleted knowledge through a shared Recycle Bin.
-- Make database export, backup, and recovery available from the UI.
+- **Lifelong Knowledge Preservation**: Keep all your educational, academic, and professional knowledge safely in one local SQLite database that travels with you throughout your lifetime.
+- **Smart Pasting & Rich Editing**: Effortlessly paste text from slides, PDFs, and web pages without mid-sentence line breaks getting corrupted.
+- **Complete Privacy & Offline Access**: Keep your personal information 100% offline without cloud telemetry or account lock-ins.
+- **Focused Feature Modules**: Separate different kinds of knowledge (notes, solutions, prompt engineering, reference links, tasks) into clear, dedicated spaces.
+- **Flexible UI Customization**: Enjoy built-in Light and Dark themes alongside custom hex color palettes for every module.
+- **Seamless Database Control**: Make full-database exports, timestamped backups, and offline restores available directly from the Settings UI.
 
 Each module owns its own UI and business rules. The React pages do not contain SQL. Database operations stay inside the Electron database layer and are exposed to the renderer through a limited preload bridge.
 

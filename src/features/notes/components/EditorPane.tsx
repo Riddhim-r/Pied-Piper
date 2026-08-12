@@ -182,6 +182,7 @@ function sanitizePastedHtml(html: string) {
     "h3",
     "hr",
     "i",
+    "img",
     "li",
     "mark",
     "ol",
@@ -199,10 +200,31 @@ function sanitizePastedHtml(html: string) {
     "thead",
     "tr",
     "u",
-    "ul"
+    "ul",
+    "div"
   ]);
 
-  const walk = (node: Node) => {
+  const blockTags = new Set([
+    "p",
+    "h1",
+    "h2",
+    "h3",
+    "blockquote",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "pre",
+    "hr",
+    "div"
+  ]);
+
+  const cleanNode = (node: Node) => {
     if (node.nodeType !== Node.ELEMENT_NODE) {
       return;
     }
@@ -210,16 +232,29 @@ function sanitizePastedHtml(html: string) {
     const element = node as HTMLElement;
     const tag = element.tagName.toLowerCase();
 
-    if (["script", "style", "meta", "link"].includes(tag)) {
+    if (["script", "style", "meta", "link", "title", "head", "iframe", "object"].includes(tag)) {
       element.remove();
       return;
     }
 
+    Array.from(element.childNodes).forEach(cleanNode);
+
     if (tag === "div") {
+      const hasBlockChildren = Array.from(element.children).some((child) =>
+        blockTags.has(child.tagName.toLowerCase())
+      );
+      if (hasBlockChildren) {
+        const fragment = documentFragment.createDocumentFragment();
+        while (element.firstChild) {
+          fragment.appendChild(element.firstChild);
+        }
+        element.replaceWith(fragment);
+        return;
+      }
+
       const paragraph = documentFragment.createElement("p");
       paragraph.innerHTML = element.innerHTML;
       element.replaceWith(paragraph);
-      walk(paragraph);
       return;
     }
 
@@ -256,7 +291,9 @@ function sanitizePastedHtml(html: string) {
         "rowspan",
         "src",
         "target",
-        "rel"
+        "rel",
+        "width",
+        "height"
       ]);
 
       if (!allowedAttributes.has(name)) {
@@ -268,11 +305,9 @@ function sanitizePastedHtml(html: string) {
       element.setAttribute("target", "_blank");
       element.setAttribute("rel", "noopener noreferrer");
     }
-
-    Array.from(element.childNodes).forEach(walk);
   };
 
-  Array.from(documentFragment.body.childNodes).forEach(walk);
+  Array.from(documentFragment.body.childNodes).forEach(cleanNode);
   return documentFragment.body.innerHTML;
 }
 
@@ -294,29 +329,31 @@ function plainTextToHtml(text: string) {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
-  const preserveLineWhitespace = (value: string) => {
-    const expandedTabs = escapeHtml(value).replace(/\t/g, "    ");
-    const leadingSpaces = expandedTabs.match(/^ +/)?.[0].length ?? 0;
-    const trailingSpaces = expandedTabs.match(/ +$/)?.[0].length ?? 0;
-    const middle = expandedTabs.slice(leadingSpaces, expandedTabs.length - trailingSpaces);
+  const cleanBlock = (block: string) => {
+    const lines = block
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
 
-    return [
-      "&nbsp;".repeat(leadingSpaces),
-      middle.replace(/ {2,}/g, (match) => ` ${"&nbsp;".repeat(match.length - 1)}`),
-      "&nbsp;".repeat(trailingSpaces)
-    ].join("");
+    if (lines.length === 0) {
+      return "";
+    }
+
+    const isListBlock = lines.every((line) => /^([*+-\u2022]|\d+[.)])\s+/.test(line));
+
+    if (isListBlock) {
+      return lines.map(escapeHtml).join("<br />");
+    }
+
+    const joinedText = lines.join(" ").replace(/\s+/g, " ");
+    return escapeHtml(joinedText);
   };
 
-  const preserveWhitespace = (value: string) =>
-    value
-      .split("\n")
-      .map(preserveLineWhitespace)
-      .join("\n");
-
   return text
-    .split(/\n{2,}/)
-    .filter((paragraph) => paragraph.length > 0)
-    .map((paragraph) => `<p>${preserveWhitespace(paragraph).replace(/\n/g, "<br />")}</p>`)
+    .split(/(?:\r?\n){2,}/)
+    .map(cleanBlock)
+    .filter(Boolean)
+    .map((paragraph) => `<p>${paragraph}</p>`)
     .join("");
 }
 
@@ -546,7 +583,7 @@ export function EditorPane({
         placeholder: "Type like a Word document, or start a line with / for commands."
       }),
       CharacterCount.configure({
-        limit: 10000
+        limit: 1000000
       })
     ],
     content: getInitialContent(notebook.contentJson),
@@ -577,28 +614,35 @@ export function EditorPane({
         const html = event.clipboardData?.getData("text/html");
         const text = event.clipboardData?.getData("text/plain") ?? "";
 
-        if (html) {
-          event.preventDefault();
-          const pastedHtml = unwrapSinglePastedParagraph(sanitizePastedHtml(html));
-          editor
-            ?.chain()
-            .focus()
-            .insertContent(pastedHtml, {
-              parseOptions: { preserveWhitespace: "full" }
-            })
-            .run();
-          return true;
+        if (html && html.trim()) {
+          const sanitized = sanitizePastedHtml(html);
+          if (sanitized && sanitized.trim()) {
+            event.preventDefault();
+            const pastedHtml = unwrapSinglePastedParagraph(sanitized);
+            editor
+              ?.chain()
+              .focus()
+              .insertContent(pastedHtml, {
+                parseOptions: { preserveWhitespace: "full" }
+              })
+              .run();
+            return true;
+          }
         }
 
-        if (text.includes("\n")) {
+        if (text && text.trim()) {
           event.preventDefault();
-          editor
-            ?.chain()
-            .focus()
-            .insertContent(plainTextToHtml(text), {
-              parseOptions: { preserveWhitespace: "full" }
-            })
-            .run();
+          if (text.includes("\n")) {
+            editor
+              ?.chain()
+              .focus()
+              .insertContent(plainTextToHtml(text), {
+                parseOptions: { preserveWhitespace: "full" }
+              })
+              .run();
+          } else {
+            editor?.chain().focus().insertContent(text).run();
+          }
           return true;
         }
 
@@ -816,7 +860,7 @@ export function EditorPane({
         </div>
         <div className="editor-pane__status">
           <span className="editor-pane__metric">
-            {editor?.storage.characterCount.characters() ?? notebook.plainTextLength} / 10000
+            {(editor?.storage.characterCount.characters() ?? notebook.plainTextLength).toLocaleString()} characters
           </span>
           <button type="button" className="primary-button" onClick={onSave} disabled={isSaving}>
             {isSaving ? "Saving..." : "Save"}

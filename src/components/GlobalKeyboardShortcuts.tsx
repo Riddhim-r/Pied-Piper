@@ -43,10 +43,25 @@ const GlobalKeyboardShortcuts = () => {
   }, [searchOpen])
 
   useEffect(() => {
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault()
+      }
+    }
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    return () => window.removeEventListener('wheel', handleWheel)
+  }, [])
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
 
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+        if (key === '0') {
+          event.preventDefault()
+          document.body.style.zoom = '100%'
+          return
+        }
         if (key === 'k') {
           event.preventDefault()
           setSearchOpen(true)

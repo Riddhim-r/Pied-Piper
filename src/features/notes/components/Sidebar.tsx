@@ -1,4 +1,4 @@
-import { ArrowLeft, Keyboard, Plus, Tag, Trash2, X } from "lucide-react";
+import { ArrowLeft, Keyboard, Moon, Plus, Sun, Tag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { NotebookSummary } from "../types";
@@ -10,12 +10,12 @@ type SidebarProps = {
   onSearchChange: (value: string) => void;
   activeTag: string | null;
   tags: string[];
-  showTrash: boolean;
+  theme: "light" | "dark";
+  onToggleTheme: () => void;
   onSelectNote: (id: number) => void;
   onCloseCurrentNote: () => void;
   onCreateNote: () => void;
   onSetActiveTag: (tag: string | null) => void;
-  onToggleTrash: () => void;
   onShowShortcuts: () => void;
 };
 
@@ -26,12 +26,12 @@ export function Sidebar({
   onSearchChange,
   activeTag,
   tags,
-  showTrash,
+  theme,
+  onToggleTheme,
   onSelectNote,
   onCloseCurrentNote,
   onCreateNote,
   onSetActiveTag,
-  onToggleTrash,
   onShowShortcuts
 }: SidebarProps) {
   const [showTagList, setShowTagList] = useState(false);
@@ -58,11 +58,11 @@ export function Sidebar({
             <button
               type="button"
               className="icon-button workspace__action-button sidebar__icon-action"
-              onClick={onToggleTrash}
-              aria-label={showTrash ? "Back to notes" : "Open trash"}
-              data-tooltip={showTrash ? "Back to notes" : "Open trash"}
+              onClick={onToggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              data-tooltip={theme === "dark" ? "Light mode" : "Dark mode"}
             >
-              {showTrash ? <ArrowLeft size={17} strokeWidth={2.1} /> : <Trash2 size={17} strokeWidth={2.1} />}
+              {theme === "dark" ? <Sun size={17} strokeWidth={2.1} /> : <Moon size={17} strokeWidth={2.1} />}
             </button>
             <button
               type="button"

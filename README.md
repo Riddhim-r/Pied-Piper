@@ -1,5 +1,7 @@
 # Pied Piper
 
+[![Features & Keyboard Shortcuts](https://img.shields.io/badge/Documentation-Feature_Guide_%26_Shortcuts-blue?style=for-the-badge)](features.md)
+
 Pied Piper is a private, single-user desktop workspace built to serve as a **lifelong personal knowledge vault and educational storage companion**. It organizes your study notes, solutions, AI prompt engineering workflows, subject topic collections, and task lists into one permanent, self-contained desktop system.
 
 Whether you are capturing lecture notes, building technical wisdom during your career, storing academic research, or organizing AI prompts, Pied Piper stays locally on your computer—growing with you through school, college, career, and beyond.
@@ -18,9 +20,9 @@ Pied Piper is built with Electron, React, TypeScript, Vite, and SQLite. All appl
 ## Table of Contents
 
 1. [Purpose and design](#purpose-and-design)
-2. [Feature guide](#feature-guide)
+2. [Feature guide](features.md)
 3. [Login and application flow](#login-and-application-flow)
-4. [Keyboard shortcuts](#keyboard-shortcuts)
+4. [Keyboard shortcuts](features.md#9-keyboard-shortcuts-reference)
 5. [Database and local storage](#database-and-local-storage)
 6. [Export, backup, and import](#export-backup-and-import)
 7. [Installation and development](#installation-and-development)
@@ -49,286 +51,19 @@ Each module owns its own UI and business rules. The React pages do not contain S
 
 ## Feature Guide
 
-### Dashboard
-
-The Dashboard is the main application home. It provides direct access to every module.
-
-The cards open:
-
-- Helpbook
-- AI Prompt Vault
-- Notes for Noobs
-- Encyclopedia
-- Todo
-- Recycle Bin
-- Settings
-
-The application name shown in the header is configurable in Settings. Clicking the heart mark or application name from a standard feature returns to the Dashboard.
-
-### Helpbook
-
-Helpbook stores reusable, step-by-step solutions.
-
-Each entry contains:
-
-- A title describing the problem.
-- One tag or domain.
-- One or more ordered solution steps.
-
-Available operations:
-
-- Create an entry.
-- Select an existing tag or create a new tag.
-- Filter entries by tag.
-- Edit the title, tag, and individual steps.
-- Delete an entry.
-
-Deleted Helpbook entries move to the Recycle Bin. They are not immediately removed from SQLite.
-
-If there are no entries, Helpbook displays an empty-state card explaining how to add the first solution. If a tag filter has no matches, it displays a separate filtered-empty message.
-
-### AI Prompt Vault
-
-AI Prompt Vault stores reusable prompts.
-
-Each prompt contains:
-
-- A title.
-- One tag.
-- One or more prompt lines.
-
-Available operations:
-
-- Create a prompt.
-- Select or create a tag.
-- Filter prompts by tag.
-- Edit a prompt.
-- Delete a prompt.
-
-Deleted prompts move to the Recycle Bin. Empty and filtered-empty states are displayed when appropriate.
-
-The internal route remains `/ai-prompts`, but all user-facing labels use **AI Prompt Vault**.
-
-### Notes for Noobs
-
-Notes for Noobs is the rich notebook editor inside Pied Piper.
-
-#### Notebook management
-
-You can:
-
-- Create notebooks.
-- Search notebooks by title.
-- assign one tag to a notebook.
-- Filter notebooks by tag.
-- Rename tags.
-- Close the current notebook.
-- Soft-delete notebooks.
-- Restore or permanently delete them from the shared Recycle Bin.
-
-A newly created notebook starts with a completely blank title and canvas. If it remains unnamed, untagged, and empty when you switch away, it is discarded permanently instead of creating an empty Recycle Bin item.
-
-Tags are case-insensitive. The tag picker:
-
-- Shows existing matching tags.
-- Allows a new tag when no case-insensitive duplicate exists.
-- Prevents duplicate forms such as `Work`, `work`, and `WORK`.
-
-#### Rich editor
-
-The editor supports:
-
-- Paragraphs
-- Heading 1, Heading 2, and Heading 3
-- Bold
-- Italic
-- Underline
-- Strikethrough
-- Subscript
-- Superscript
-- Text color
-- Highlight color
-- Selectable text sizes
-- Bullet lists
-- Numbered lists
-- Lettered lists
-- Roman-numbered lists
-- Task lists
-- Code blocks
-- Tables
-- Links
-- Images
-- Undo and redo
-- Slash commands
-- Document outline navigation
-- Focus mode
-- Character counting
-
-Numbering formats are:
-
-- Numbered lists: `1, 2, 3`
-- Lettered lists: `A, B, C`
-- Roman lists: `i, ii, iii`
-
-Task-list checkboxes and their text are kept on the same line.
-
-#### Saving
-
-Notebook changes autosave after a short delay. `Ctrl + S` can save immediately.
-
-The database limits notebook plain text to 10,000 characters. Content is stored as structured TipTap JSON.
-
-#### Images
-
-Images are supported only in Notes for Noobs.
-
-Accepted formats:
-
-- PNG
-- JPEG
-- GIF
-- WebP
-
-The maximum image size is 5 MB. Images are stored as data URLs with the notebook content, so they remain included in database exports and backups.
-
-#### PDF export
-
-The currently open notebook can be exported as a PDF:
-
-1. Open the notebook.
-2. Choose **Export PDF**.
-3. Select a destination.
-4. Save the generated A4 PDF.
-
-The exported PDF includes the notebook title, formatted content, images, tables, code blocks, and task lists.
-
-#### Clear formatting
-
-Clear formatting removes inline styling from selected text, including:
-
-- Bold
-- Italic
-- Underline
-- Colors
-- Highlights
-- Links
-- Text sizing
-
-It does not delete text or remove structural blocks such as headings and lists.
-
-### Encyclopedia
-
-Encyclopedia is a topic-based collection of useful links. It replaces all former course-creation concepts.
-
-Each topic contains:
-
-- A title.
-- An optional description.
-- Any number of links.
-
-Each link contains:
-
-- A label.
-- A URL.
-
-You can:
-
-- Create topics.
-- Edit topics.
-- Delete topics.
-- Open a topic.
-- Add links.
-- Edit links.
-- Remove links.
-- Open HTTP and HTTPS links in the default browser.
-
-Deleting a topic moves the topic and its links to the Recycle Bin. Restoring the topic restores its link collection.
-
-Removing an individual link deletes that link permanently from its topic.
-
-### Todo
-
-Todo intentionally supports exactly one active list.
-
-Workflow:
-
-1. Enter a list name.
-2. Create the list.
-3. Add tasks.
-4. Check tasks as they are completed.
-5. Completed tasks automatically move below unfinished tasks.
-6. Complete every task.
-7. Delete the completed list.
-8. Create a new list.
-
-Rules:
-
-- A second list cannot be created while the current list exists.
-- The list cannot be deleted until it contains at least one task and every task is complete.
-- A completed task can be unchecked.
-- Deleting the finished list permanently removes the list and its tasks.
-
-Todo is intentionally not part of the shared Recycle Bin.
-
-### Recycle Bin
-
-The Recycle Bin contains four categories:
-
-- Helpbook
-- AI Prompt Vault
-- Notes for Noobs
-- Encyclopedia
-
-The category screen displays the number of deleted items in each category.
-
-Inside a category, you can:
-
-- Select one item.
-- Select multiple items.
-- Select all items.
-- Restore selected items.
-- Permanently delete selected items.
-
-Permanent deletion requires confirmation and cannot be undone.
-
-The Recycle Bin is an index of soft-deleted records. The original content remains in its feature table until it is permanently deleted.
-
-### Settings
-
-Settings contains only application-wide preferences and database controls.
-
-#### Application
-
-- **Application Name:** Changes the name rendered in the application and window title.
-- **Database Location:** Displays the active SQLite file.
-- **Storage Used:** Displays the current SQLite file size.
-
-#### Feature themes
-
-Each feature can have its own six-digit hex background color:
-
-- Dashboard
-- Helpbook
-- AI Prompt Vault
-- Notes for Noobs
-- Encyclopedia
-- Todo
-- Recycle Bin
-- Settings
-
-Use either the color picker or a value such as `#efc8d5`. Changes apply after **Save Settings**.
-
-#### Database actions
-
-- Export Database
-- Import Database
-- Create Backup
-
-See [Export, backup, and import](#export-backup-and-import) before using Import.
-
-#### Keyboard shortcuts
-
-Settings contains the application-wide shortcut reference. Notes-specific commands stay inside the Notes for Noobs shortcut panel.
+For detailed documentation, workflows, and module capabilities, see **[features.md](features.md)**.
+
+### Summary of Modules
+
+- **Notes for Noobs**: Rich document editor (TipTap engine) with Smart Pasting, light/dark themes, slash commands, outline navigation, focus mode, and PDF export.
+- **Helpbook**: Technical solution and wisdom repository organized by ordered steps and tags.
+- **AI Prompt Vault**: Structured template library for LLM system/user prompts.
+- **Encyclopedia**: Topic hierarchy and reference link directory.
+- **Todo**: Focused single-list task manager with strict completion rules.
+- **Recycle Bin**: Centralized recovery index for soft-deleted items across features.
+- **Settings**: Per-feature theme customization, application renaming, and local database backup/restore controls.
+
+👉 For the full feature showcase, see **[features.md](features.md)**.
 
 ## Login and Application Flow
 
@@ -354,43 +89,9 @@ The desktop window opens maximized by default.
 
 ## Keyboard Shortcuts
 
-### Application-wide shortcuts
+Pied Piper supports global application shortcuts and editor-specific shortcuts.
 
-| Shortcut | Action |
-|---|---|
-| `Alt + Left Arrow` | Move to the previous page |
-| `Alt + Right Arrow` | Move to the next page |
-| `Alt + Home` | Open Dashboard |
-| `Ctrl + K` | Open the page search |
-| `Ctrl + ,` | Open Settings |
-| `Ctrl + N` | Create or focus a new item in the current feature |
-| `Ctrl + Shift + T` | Open Todo |
-| `Ctrl + Shift + Delete` | Open Recycle Bin |
-| `Escape` | Close the active search, form, menu, panel, or dialog |
-
-`Ctrl + N` uses the current feature’s existing creation flow. It creates a notebook in Notes, opens entry creation in Helpbook and AI Prompt Vault, opens topic/link creation in Encyclopedia, and focuses the appropriate Todo input.
-
-`Ctrl + K` searches application pages rather than the contents of every saved record.
-
-### Notes for Noobs shortcuts
-
-| Shortcut | Action |
-|---|---|
-| `Ctrl + B` | Bold |
-| `Ctrl + I` | Italic |
-| `Ctrl + Z` | Undo |
-| `Ctrl + Y` | Redo |
-| `Ctrl + S` | Save immediately |
-| `Ctrl + Alt + 1` | Heading 1 |
-| `Ctrl + Alt + 2` | Heading 2 |
-| `Ctrl + Alt + 3` | Heading 3 |
-| `Ctrl + Click` | Open a link |
-| `/` | Open slash commands at the start of a line |
-| `/ roman` | Insert a Roman-numbered list |
-| `Tab` | Nest a list item |
-| `Shift + Tab` | Move a list item one level out |
-| `Enter` | Continue a list |
-| `Backspace` | Exit an empty list item |
+👉 For the full interactive table of shortcuts, see **[features.md#9-keyboard-shortcuts-reference](features.md#9-keyboard-shortcuts-reference)**.
 
 ## Database and Local Storage
 
@@ -684,6 +385,7 @@ Pied Piper/
 │   ├── pages/
 │   ├── styles/
 │   └── types/
+├── features.md
 ├── index.html
 ├── package.json
 └── README.md

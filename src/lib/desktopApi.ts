@@ -48,145 +48,106 @@ const ensureDesktopApi = () => {
   return window.piedPiper
 }
 
-const ensureEncyclopediaApi = () => {
+const ensureApiMethods = (methodNames: (keyof NonNullable<typeof window.piedPiper>)[], featureName: string) => {
   const api = ensureDesktopApi()
-  if (
-    typeof api.listEncyclopediaTopics !== 'function' ||
-    typeof api.createEncyclopediaTopic !== 'function' ||
-    typeof api.updateEncyclopediaTopic !== 'function' ||
-    typeof api.deleteEncyclopediaTopic !== 'function' ||
-    typeof api.getEncyclopediaTopic !== 'function' ||
-    typeof api.listEncyclopediaLinks !== 'function' ||
-    typeof api.createEncyclopediaLink !== 'function' ||
-    typeof api.updateEncyclopediaLink !== 'function' ||
-    typeof api.deleteEncyclopediaLink !== 'function' ||
-    typeof api.openEncyclopediaLink !== 'function'
-  ) {
-    throw new Error('Encyclopedia API is out of date. Close and restart the desktop application.')
-  }
-  return api
-}
-
-const ensureTodoApi = () => {
-  const api = ensureDesktopApi()
-  if (
-    typeof api.getTodoState !== 'function' ||
-    typeof api.createTodoList !== 'function' ||
-    typeof api.addTodoTask !== 'function' ||
-    typeof api.setTodoTaskCompleted !== 'function' ||
-    typeof api.deleteTodoList !== 'function'
-  ) {
-    throw new Error('Todo API is out of date. Close and restart the desktop application.')
-  }
-  return api
-}
-
-const ensureNotesApi = () => {
-  const api = ensureDesktopApi()
-  if (
-    typeof api.listNotebooks !== 'function' ||
-    typeof api.getNotebook !== 'function' ||
-    typeof api.createNotebook !== 'function' ||
-    typeof api.discardEmptyNotebook !== 'function' ||
-    typeof api.saveNotebook !== 'function' ||
-    typeof api.softDeleteNotebook !== 'function' ||
-    typeof api.restoreNotebook !== 'function' ||
-    typeof api.permanentlyDeleteNotebook !== 'function' ||
-    typeof api.listNotebookTags !== 'function' ||
-    typeof api.renameNotebookTag !== 'function' ||
-    typeof api.storeNotebookImage !== 'function' ||
-    typeof api.openNotebookLink !== 'function' ||
-    typeof api.exportNotebookPdf !== 'function'
-  ) {
-    throw new Error('Notes API is out of date. Close and restart the desktop application.')
-  }
-  return api
-}
-
-const ensureRecycleBinApi = () => {
-  const api = ensureDesktopApi()
-  if (
-    typeof api.listRecycleBinCategories !== 'function' ||
-    typeof api.listRecycleBinItems !== 'function' ||
-    typeof api.restoreRecycleBinItems !== 'function' ||
-    typeof api.permanentlyDeleteRecycleBinItems !== 'function'
-  ) {
-    throw new Error('Recycle Bin API is out of date. Close and restart the desktop application.')
-  }
-  return api
-}
-
-const ensureSettingsApi = () => {
-  const api = ensureDesktopApi()
-  if (
-    typeof api.getApplicationSettings !== 'function' ||
-    typeof api.saveApplicationSettings !== 'function' ||
-    typeof api.exportDatabase !== 'function' ||
-    typeof api.importDatabase !== 'function' ||
-    typeof api.createDatabaseBackup !== 'function'
-  ) {
-    throw new Error('Settings API is out of date. Close and restart the desktop application.')
+  const missing = methodNames.find((method) => typeof api[method] !== 'function')
+  if (missing) {
+    throw new Error(`${featureName} API is out of date. Close and restart the desktop application.`)
   }
   return api
 }
 
 export const desktopApi = {
-  listEncyclopediaTopics: () => ensureEncyclopediaApi().listEncyclopediaTopics(),
+  // Encyclopedia
+  listEncyclopediaTopics: () =>
+    ensureApiMethods(
+      ['listEncyclopediaTopics', 'createEncyclopediaTopic', 'updateEncyclopediaTopic', 'deleteEncyclopediaTopic', 'getEncyclopediaTopic', 'listEncyclopediaLinks', 'createEncyclopediaLink', 'updateEncyclopediaLink', 'deleteEncyclopediaLink', 'openEncyclopediaLink'],
+      'Encyclopedia'
+    ).listEncyclopediaTopics(),
   createEncyclopediaTopic: (payload: EncyclopediaTopicPayload) =>
-    ensureEncyclopediaApi().createEncyclopediaTopic(payload),
+    ensureDesktopApi().createEncyclopediaTopic(payload),
   updateEncyclopediaTopic: (id: string, payload: EncyclopediaTopicPayload) =>
-    ensureEncyclopediaApi().updateEncyclopediaTopic(id, payload),
-  deleteEncyclopediaTopic: (id: string) => ensureEncyclopediaApi().deleteEncyclopediaTopic(id),
-  getEncyclopediaTopic: (id: string) => ensureEncyclopediaApi().getEncyclopediaTopic(id),
+    ensureDesktopApi().updateEncyclopediaTopic(id, payload),
+  deleteEncyclopediaTopic: (id: string) => ensureDesktopApi().deleteEncyclopediaTopic(id),
+  getEncyclopediaTopic: (id: string) => ensureDesktopApi().getEncyclopediaTopic(id),
   listEncyclopediaLinks: (topicId: string) =>
-    ensureEncyclopediaApi().listEncyclopediaLinks(topicId),
+    ensureDesktopApi().listEncyclopediaLinks(topicId),
   createEncyclopediaLink: (topicId: string, payload: EncyclopediaLinkPayload) =>
-    ensureEncyclopediaApi().createEncyclopediaLink(topicId, payload),
+    ensureDesktopApi().createEncyclopediaLink(topicId, payload),
   updateEncyclopediaLink: (id: string, payload: EncyclopediaLinkPayload) =>
-    ensureEncyclopediaApi().updateEncyclopediaLink(id, payload),
-  deleteEncyclopediaLink: (id: string) => ensureEncyclopediaApi().deleteEncyclopediaLink(id),
-  openEncyclopediaLink: (url: string) => ensureEncyclopediaApi().openEncyclopediaLink(url),
-  getTodoState: () => ensureTodoApi().getTodoState(),
-  createTodoList: (payload: TodoListPayload) => ensureTodoApi().createTodoList(payload),
-  addTodoTask: (payload: TodoTaskPayload) => ensureTodoApi().addTodoTask(payload),
+    ensureDesktopApi().updateEncyclopediaLink(id, payload),
+  deleteEncyclopediaLink: (id: string) => ensureDesktopApi().deleteEncyclopediaLink(id),
+  openEncyclopediaLink: (url: string) => ensureDesktopApi().openEncyclopediaLink(url),
+
+  // Todo
+  getTodoState: () =>
+    ensureApiMethods(
+      ['getTodoState', 'createTodoList', 'addTodoTask', 'setTodoTaskCompleted', 'deleteTodoList'],
+      'Todo'
+    ).getTodoState(),
+  createTodoList: (payload: TodoListPayload) => ensureDesktopApi().createTodoList(payload),
+  addTodoTask: (payload: TodoTaskPayload) => ensureDesktopApi().addTodoTask(payload),
   setTodoTaskCompleted: (id: string, isCompleted: boolean) =>
-    ensureTodoApi().setTodoTaskCompleted(id, isCompleted),
-  deleteTodoList: () => ensureTodoApi().deleteTodoList(),
-  listNotebooks: (params: NotebookListParams) => ensureNotesApi().listNotebooks(params),
-  getNotebook: (id: number) => ensureNotesApi().getNotebook(id),
-  createNotebook: (title: string) => ensureNotesApi().createNotebook(title),
-  discardEmptyNotebook: (id: number) => ensureNotesApi().discardEmptyNotebook(id),
-  saveNotebook: (payload: NotebookSavePayload) => ensureNotesApi().saveNotebook(payload),
-  softDeleteNotebook: (id: number) => ensureNotesApi().softDeleteNotebook(id),
-  restoreNotebook: (id: number) => ensureNotesApi().restoreNotebook(id),
-  permanentlyDeleteNotebook: (id: number) => ensureNotesApi().permanentlyDeleteNotebook(id),
-  listNotebookTags: () => ensureNotesApi().listNotebookTags(),
+    ensureDesktopApi().setTodoTaskCompleted(id, isCompleted),
+  deleteTodoList: () => ensureDesktopApi().deleteTodoList(),
+
+  // Notes
+  listNotebooks: (params: NotebookListParams) =>
+    ensureApiMethods(
+      ['listNotebooks', 'getNotebook', 'createNotebook', 'discardEmptyNotebook', 'saveNotebook', 'softDeleteNotebook', 'restoreNotebook', 'permanentlyDeleteNotebook', 'listNotebookTags', 'renameNotebookTag', 'storeNotebookImage', 'openNotebookLink', 'exportNotebookPdf'],
+      'Notes'
+    ).listNotebooks(params),
+  getNotebook: (id: number) => ensureDesktopApi().getNotebook(id),
+  createNotebook: (title: string) => ensureDesktopApi().createNotebook(title),
+  discardEmptyNotebook: (id: number) => ensureDesktopApi().discardEmptyNotebook(id),
+  saveNotebook: (payload: NotebookSavePayload) => ensureDesktopApi().saveNotebook(payload),
+  softDeleteNotebook: (id: number) => ensureDesktopApi().softDeleteNotebook(id),
+  restoreNotebook: (id: number) => ensureDesktopApi().restoreNotebook(id),
+  permanentlyDeleteNotebook: (id: number) => ensureDesktopApi().permanentlyDeleteNotebook(id),
+  listNotebookTags: () => ensureDesktopApi().listNotebookTags(),
   renameNotebookTag: (oldTag: string, newTag: string) =>
-    ensureNotesApi().renameNotebookTag(oldTag, newTag),
+    ensureDesktopApi().renameNotebookTag(oldTag, newTag),
   storeNotebookImage: (filename: string, dataBase64: string) =>
-    ensureNotesApi().storeNotebookImage(filename, dataBase64),
-  openNotebookLink: (url: string) => ensureNotesApi().openNotebookLink(url),
+    ensureDesktopApi().storeNotebookImage(filename, dataBase64),
+  openNotebookLink: (url: string) => ensureDesktopApi().openNotebookLink(url),
   exportNotebookPdf: (payload: { title: string; contentHtml: string }) =>
-    ensureNotesApi().exportNotebookPdf(payload),
+    ensureDesktopApi().exportNotebookPdf(payload),
+
+  // Knowledge Entries (Helpbook & Prompts)
   listHelpbook: () => ensureDesktopApi().listHelpbook(),
   createHelpbook: (payload: HelpPromptPayload) => ensureDesktopApi().createHelpbook(payload),
-  updateHelpbook: (id: string, payload: HelpPromptPayload) => ensureDesktopApi().updateHelpbook(id, payload),
+  updateHelpbook: (id: string, payload: HelpPromptPayload) =>
+    ensureDesktopApi().updateHelpbook(id, payload),
   deleteHelpbook: (id: string) => ensureDesktopApi().deleteHelpbook(id),
   listPrompts: () => ensureDesktopApi().listPrompts(),
-  createPrompt: (payload: HelpPromptPayload) => ensureDesktopApi().createPrompt(payload),
-  updatePrompt: (id: string, payload: HelpPromptPayload) => ensureDesktopApi().updatePrompt(id, payload),
+  createPrompt: (payload: { title: string; tags: string[]; steps: string[] }) =>
+    ensureDesktopApi().createPrompt(payload),
+  updatePrompt: (id: string, payload: { title: string; tags: string[]; steps: string[] }) =>
+    ensureDesktopApi().updatePrompt(id, payload),
   deletePrompt: (id: string) => ensureDesktopApi().deletePrompt(id),
-  listRecycleBinCategories: () => ensureRecycleBinApi().listRecycleBinCategories(),
+
+  // Recycle Bin
+  listRecycleBinCategories: () =>
+    ensureApiMethods(
+      ['listRecycleBinCategories', 'listRecycleBinItems', 'restoreRecycleBinItems', 'permanentlyDeleteRecycleBinItems'],
+      'Recycle Bin'
+    ).listRecycleBinCategories(),
   listRecycleBinItems: (category: string) =>
-    ensureRecycleBinApi().listRecycleBinItems(category),
+    ensureDesktopApi().listRecycleBinItems(category),
   restoreRecycleBinItems: (recycleItemIds: string[]) =>
-    ensureRecycleBinApi().restoreRecycleBinItems(recycleItemIds),
+    ensureDesktopApi().restoreRecycleBinItems(recycleItemIds),
   permanentlyDeleteRecycleBinItems: (recycleItemIds: string[]) =>
-    ensureRecycleBinApi().permanentlyDeleteRecycleBinItems(recycleItemIds),
-  getApplicationSettings: () => ensureSettingsApi().getApplicationSettings(),
+    ensureDesktopApi().permanentlyDeleteRecycleBinItems(recycleItemIds),
+
+  // Settings
+  getApplicationSettings: () =>
+    ensureApiMethods(
+      ['getApplicationSettings', 'saveApplicationSettings', 'exportDatabase', 'importDatabase', 'createDatabaseBackup'],
+      'Settings'
+    ).getApplicationSettings(),
   saveApplicationSettings: (payload: ApplicationSettingsPayload) =>
-    ensureSettingsApi().saveApplicationSettings(payload),
-  exportDatabase: () => ensureSettingsApi().exportDatabase(),
-  importDatabase: () => ensureSettingsApi().importDatabase(),
-  createDatabaseBackup: () => ensureSettingsApi().createDatabaseBackup(),
+    ensureDesktopApi().saveApplicationSettings(payload),
+  exportDatabase: () => ensureDesktopApi().exportDatabase(),
+  importDatabase: () => ensureDesktopApi().importDatabase(),
+  createDatabaseBackup: () => ensureDesktopApi().createDatabaseBackup(),
 }

@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { desktopApi } from '../../../lib/desktopApi'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
+import { TagBar } from '../../../components/TagBar'
+import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
+import { useTagFilter } from '../../../hooks/useTagFilter'
+import {
+  createPromptEntry,
+  deletePromptEntry,
+  listPromptEntries,
+  updatePromptEntry,
+} from '../services/promptsService'
 
 type PromptEntry = {
   id: string
@@ -13,7 +21,6 @@ type PromptEntry = {
 
 const AiPromptsPage = () => {
   const [entries, setEntries] = useState<PromptEntry[]>([])
-  const [activeTag, setActiveTag] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
@@ -21,17 +28,20 @@ const AiPromptsPage = () => {
   const [title, setTitle] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
   const [stepsText, setStepsText] = useState('')
-  const [tagSearch, setTagSearch] = useState('')
-  const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
+  const { activeTag, setActiveTag, allTags, visibleEntries } = useTagFilter(
+    entries,
+    selectedTag,
+  )
+
   useEffect(() => {
     const loadEntries = async () => {
       try {
-        const items = await desktopApi.listPrompts()
-        setEntries(items)
+        const items = await listPromptEntries()
+        setEntries(items as PromptEntry[])
       } catch (loadError) {
         console.error(loadError)
         setError('Unable to load the AI Prompt Vault.')
@@ -43,42 +53,9 @@ const AiPromptsPage = () => {
     loadEntries()
   }, [])
 
-  useEffect(() => {
-    if (activeTag !== 'all') {
-      const stillExists = entries.some((entry) => entry.tags.includes(activeTag))
-      if (!stillExists) {
-        setActiveTag('all')
-      }
-    }
-  }, [entries, activeTag])
-
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }))
   }
-
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>()
-    entries.forEach((entry) => entry.tags.forEach((tag) => tagSet.add(tag)))
-    if (selectedTag.trim()) {
-      tagSet.add(selectedTag.trim())
-    }
-    return Array.from(tagSet).sort()
-  }, [entries, selectedTag])
-
-  const filteredTags = useMemo(() => {
-    const query = tagSearch.trim().toLowerCase()
-    if (!query) {
-      return allTags
-    }
-    return allTags.filter((tag) => tag.toLowerCase().includes(query))
-  }, [allTags, tagSearch])
-
-  const visibleEntries = useMemo(() => {
-    if (activeTag === 'all') {
-      return entries
-    }
-    return entries.filter((entry) => entry.tags.includes(activeTag))
-  }, [entries, activeTag])
 
   const resetForm = () => {
     setTitle('')
@@ -86,18 +63,6 @@ const AiPromptsPage = () => {
     setStepsText('')
     setEditingId(null)
     setError('')
-    setTagSearch('')
-    setTagDropdownOpen(false)
-  }
-
-  const handleAddTag = () => {
-    const trimmed = tagSearch.trim()
-    if (!trimmed) {
-      return
-    }
-    setSelectedTag(trimmed)
-    setTagDropdownOpen(false)
-    setTagSearch('')
   }
 
   const handleSubmit = async () => {
@@ -122,7 +87,7 @@ const AiPromptsPage = () => {
 
     if (editingId) {
       try {
-        await desktopApi.updatePrompt(editingId, {
+        await updatePromptEntry(editingId, {
           title: title.trim(),
           tags: [selectedTag.trim()],
           steps,
@@ -147,7 +112,7 @@ const AiPromptsPage = () => {
       )
     } else {
       try {
-        const created = await desktopApi.createPrompt({
+        const created = await createPromptEntry({
           title: title.trim(),
           tags: [selectedTag.trim()],
           steps,
@@ -192,7 +157,7 @@ const AiPromptsPage = () => {
     }
 
     try {
-      await desktopApi.deletePrompt(pendingDeleteId)
+      await deletePromptEntry(pendingDeleteId)
     } catch (deleteError) {
       console.error(deleteError)
       setError('Could not delete prompt.')
@@ -250,25 +215,7 @@ const AiPromptsPage = () => {
           </button>
         </div>
 
-        <div className="tag-bar">
-          <button
-            type="button"
-            className={activeTag === 'all' ? 'tag-chip active' : 'tag-chip'}
-            onClick={() => setActiveTag('all')}
-          >
-            all
-          </button>
-          {allTags.map((tag) => (
-            <button
-              type="button"
-              className={activeTag === tag ? 'tag-chip active' : 'tag-chip'}
-              key={tag}
-              onClick={() => setActiveTag(tag)}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
+        <TagBar activeTag={activeTag} tags={allTags} onSelectTag={setActiveTag} />
 
         {showForm ? (
           <div className="card form-grid">
@@ -284,46 +231,11 @@ const AiPromptsPage = () => {
 
             <div className="field">
               <span>Tag</span>
-              <div className="tag-dropdown">
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => setTagDropdownOpen((prev) => !prev)}
-                >
-                  {selectedTag ? `Tag: ${selectedTag}` : 'Pick a tag'}
-                </button>
-
-                {tagDropdownOpen ? (
-                  <div className="dropdown-panel">
-                    <input
-                      type="text"
-                      placeholder="Search tags"
-                      value={tagSearch}
-                      onChange={(event) => setTagSearch(event.target.value)}
-                    />
-                    <div className="dropdown-list">
-                      {filteredTags.length === 0 ? <p className="muted">No tags found.</p> : null}
-                      {filteredTags.map((tag) => (
-                        <button
-                          type="button"
-                          key={tag}
-                          className="dropdown-item"
-                          onClick={() => {
-                            setSelectedTag(tag)
-                            setTagDropdownOpen(false)
-                            setTagSearch('')
-                          }}
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                    <button type="button" className="btn primary" onClick={handleAddTag}>
-                      Add new tag
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+              <TagSelectDropdown
+                selectedTag={selectedTag}
+                allTags={allTags}
+                onSelectTag={setSelectedTag}
+              />
             </div>
 
             <label className="field">
@@ -404,7 +316,7 @@ const AiPromptsPage = () => {
                     lineHeight: 1.6,
                     color: '#2a2a32',
                     fontSize: '0.96rem',
-                    marginBottom: '16px'
+                    marginBottom: '16px',
                   }}
                 >
                   {displayedSteps.map((step, index) => {
@@ -423,7 +335,7 @@ const AiPromptsPage = () => {
                                 padding: '2px 8px',
                                 height: 'auto',
                                 minHeight: 'unset',
-                                lineHeight: 1.2
+                                lineHeight: 1.2,
                               }}
                               onClick={() => toggleExpand(entry.id)}
                             >
@@ -447,7 +359,7 @@ const AiPromptsPage = () => {
                       height: 'auto',
                       minHeight: 'unset',
                       lineHeight: 1.2,
-                      alignSelf: 'flex-start'
+                      alignSelf: 'flex-start',
                     }}
                     onClick={() => toggleExpand(entry.id)}
                   >

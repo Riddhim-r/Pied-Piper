@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { List, Maximize2, Minimize2, Save, Trash2, X } from "lucide-react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import { EditorPane } from "../components/EditorPane";
 import { OutlinePanel } from "../components/OutlinePanel";
 import { ShortcutsView } from "../components/ShortcutsView";
 import { Sidebar } from "../components/Sidebar";
+import { TagCombobox } from "../components/TagCombobox";
+import { useNoteDraft } from "../hooks/useNoteDraft";
+import { useNotesAutoSave } from "../hooks/useNotesAutoSave";
 import {
   createNotebook,
   discardEmptyNotebook,
@@ -19,11 +22,6 @@ import {
 import type { EditorDraft, NotebookRecord, NotebookSummary, OutlineHeading } from "../types";
 import "../notes.css";
 
-const EMPTY_DOC = JSON.stringify({
-  type: "doc",
-  content: [{ type: "paragraph" }]
-});
-
 function AppShell() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -35,10 +33,20 @@ function AppShell() {
   const [tags, setTags] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [currentNotebook, setCurrentNotebook] = useState<NotebookRecord | null>(null);
-  const [draftTitle, setDraftTitle] = useState("");
-  const [draftTag, setDraftTag] = useState("");
-  const [draftContentJson, setDraftContentJson] = useState(EMPTY_DOC);
-  const [draftPlainTextLength, setDraftPlainTextLength] = useState(0);
+
+  const {
+    draftTitle,
+    setDraftTitle,
+    draftTag,
+    setDraftTag,
+    draftContentJson,
+    draftPlainTextLength,
+    resetDraft,
+    isDirty,
+    isCurrentDraftBlank,
+    handleDraftChange,
+  } = useNoteDraft(currentNotebook);
+
   const [outline, setOutline] = useState<OutlineHeading[]>([]);
   const [jumpToHeading, setJumpToHeading] = useState<(pos: number, key: string) => void>(
     () => () => undefined
@@ -50,33 +58,6 @@ function AppShell() {
   const [showNavigation, setShowNavigation] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
-  const tagComboboxRef = useRef<HTMLDivElement | null>(null);
-
-  const normalizedDraftTag = draftTag.trim();
-  const draftTagQuery = normalizedDraftTag.toLowerCase();
-  const hasExactDraftTagMatch = useMemo(
-    () => tags.some((value) => value.toLowerCase() === draftTagQuery),
-    [tags, draftTagQuery]
-  );
-  const filteredDraftTags = useMemo(() => {
-    if (!normalizedDraftTag) {
-      return tags;
-    }
-    return tags.filter((value) => value.toLowerCase().includes(draftTagQuery));
-  }, [tags, normalizedDraftTag, draftTagQuery]);
-
-  useEffect(() => {
-    const handlePointerDown = (event: PointerEvent) => {
-      if (tagComboboxRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setIsTagMenuOpen(false);
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
 
   const toggleTheme = () => {
     setNotesTheme((current) => {
@@ -89,12 +70,6 @@ function AppShell() {
   const isShortcutsPage = showShortcuts;
   const canShowNavigation = !isShortcutsPage && !isFocusMode && currentNotebook != null;
   const titleError = draftTitle.trim() ? null : "Title is required.";
-  const isCurrentDraftBlank =
-    currentNotebook != null &&
-    !draftTitle.trim() &&
-    !draftTag.trim() &&
-    draftPlainTextLength === 0 &&
-    draftContentJson === EMPTY_DOC;
 
   const refreshSidebarData = useCallback(async () => {
     const [loadedNotebooks, loadedTags] = await Promise.all([
@@ -142,27 +117,11 @@ function AppShell() {
       }
 
       setCurrentNotebook(notebook);
-      setDraftTitle(notebook.title);
-      setDraftTag(notebook.tag ?? "");
-      setDraftContentJson(notebook.contentJson || EMPTY_DOC);
-      setDraftPlainTextLength(notebook.plainTextLength);
+      resetDraft(notebook);
       setLastSavedAt(notebook.updatedAt);
       setSaveMessage(null);
     })();
   }, [selectedId]);
-
-  const isDirty = useMemo(() => {
-    if (!currentNotebook) {
-      return false;
-    }
-
-    return (
-      currentNotebook.title !== draftTitle ||
-      (currentNotebook.tag ?? "") !== draftTag ||
-      currentNotebook.contentJson !== draftContentJson ||
-      currentNotebook.plainTextLength !== draftPlainTextLength
-    );
-  }, [currentNotebook, draftTitle, draftTag, draftContentJson, draftPlainTextLength]);
 
   const persist = useCallback(async () => {
     if (!currentNotebook) {
@@ -186,10 +145,7 @@ function AppShell() {
       });
 
       setCurrentNotebook(saved);
-      setDraftTitle(saved.title);
-      setDraftTag(saved.tag ?? "");
-      setDraftContentJson(saved.contentJson);
-      setDraftPlainTextLength(saved.plainTextLength);
+      resetDraft(saved);
       setLastSavedAt(saved.updatedAt);
       setSaveMessage("Saved.");
       await refreshSidebarData();
@@ -206,22 +162,19 @@ function AppShell() {
     draftPlainTextLength,
     draftTag,
     draftTitle,
-    refreshSidebarData
+    refreshSidebarData,
+    resetDraft
   ]);
+
+  useNotesAutoSave(isDirty, currentNotebook, persist, setSaveMessage);
 
   const confirmNotebookTransition = useCallback(
     async (options?: { allowCloseWithoutSavingOnFailure?: boolean }) => {
-      if (
-        currentNotebook &&
-        !draftTitle.trim() &&
-        !draftTag.trim() &&
-        draftPlainTextLength === 0 &&
-        draftContentJson === EMPTY_DOC
-      ) {
-        const result = await discardEmptyNotebook(currentNotebook.id);
+      if (isCurrentDraftBlank) {
+        const result = await discardEmptyNotebook(currentNotebook!.id);
         if (result.discarded) {
           setNotebooks((current) =>
-            current.filter((notebook) => notebook.id !== currentNotebook.id)
+            current.filter((notebook) => notebook.id !== currentNotebook!.id)
           );
           setSelectedId(null);
           setCurrentNotebook(null);
@@ -236,9 +189,9 @@ function AppShell() {
         return true;
       }
 
-    const shouldSave = window.confirm(
-      `Save changes to "${draftTitle.trim() || currentNotebook.title}" before leaving this notebook?\n\nChoose OK to save, or Cancel to close without saving.`
-    );
+      const shouldSave = window.confirm(
+        `Save changes to "${draftTitle.trim() || currentNotebook.title}" before leaving this notebook?\n\nChoose OK to save, or Cancel to close without saving.`
+      );
 
       if (!shouldSave) {
         setSaveMessage("Changes discarded.");
@@ -266,31 +219,13 @@ function AppShell() {
     },
     [
       currentNotebook,
-      draftContentJson,
-      draftPlainTextLength,
-      draftTag,
       draftTitle,
+      isCurrentDraftBlank,
       isDirty,
       isSaving,
       persist
     ]
   );
-
-  useEffect(() => {
-    if (!isDirty || !currentNotebook) {
-      return;
-    }
-
-    setSaveMessage((current) =>
-      current == null || current === "Saved." ? "Unsaved changes." : current
-    );
-
-    const timer = window.setTimeout(() => {
-      void persist();
-    }, 500);
-
-    return () => window.clearTimeout(timer);
-  }, [isDirty, currentNotebook, draftTitle, draftTag, draftContentJson, draftPlainTextLength]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -347,10 +282,9 @@ function AppShell() {
     ]);
     setSelectedId(notebook.id);
     setCurrentNotebook(notebook);
+    resetDraft(notebook);
     setDraftTitle("");
     setDraftTag("");
-    setDraftContentJson(EMPTY_DOC);
-    setDraftPlainTextLength(0);
     setOutline([]);
     setLastSavedAt(notebook.updatedAt);
     setSaveMessage("Created a fresh notebook.");
@@ -389,9 +323,8 @@ function AppShell() {
     setSaveMessage((current) => current ?? "Notebook closed.");
   };
 
-  const handleDraftChange = (draft: EditorDraft) => {
-    setDraftContentJson(draft.contentJson);
-    setDraftPlainTextLength(draft.plainTextLength);
+  const handleEditorDraftChange = (draft: EditorDraft) => {
+    handleDraftChange(draft);
     setOutline(draft.outline);
     if (saveMessage === "Saved.") {
       setSaveMessage("Unsaved changes.");
@@ -519,49 +452,11 @@ function AppShell() {
                         placeholder="Notebook title..."
                         onChange={(event) => setDraftTitle(event.target.value.slice(0, 100))}
                       />
-                      <div className="tag-combobox" ref={tagComboboxRef}>
-                        <input
-                          className="tag-input"
-                          value={draftTag}
-                          maxLength={40}
-                          onFocus={() => setIsTagMenuOpen(true)}
-                          onClick={() => setIsTagMenuOpen(true)}
-                          onChange={(event) => {
-                            setDraftTag(event.target.value.slice(0, 40));
-                            setIsTagMenuOpen(true);
-                          }}
-                          placeholder="Tag..."
-                        />
-                        {isTagMenuOpen ? (
-                          <div className="tag-combobox__menu">
-                            {filteredDraftTags.map((value) => (
-                              <button
-                                key={value}
-                                type="button"
-                                className={`tag-combobox__option${normalizedDraftTag.toLowerCase() === value.toLowerCase() ? " is-active" : ""}`}
-                                onClick={() => {
-                                  setDraftTag(value);
-                                  setIsTagMenuOpen(false);
-                                }}
-                              >
-                                {value}
-                              </button>
-                            ))}
-                            {normalizedDraftTag && !hasExactDraftTagMatch ? (
-                              <button
-                                type="button"
-                                className="tag-combobox__option tag-combobox__option--create"
-                                onClick={() => {
-                                  setDraftTag(normalizedDraftTag.slice(0, 40));
-                                  setIsTagMenuOpen(false);
-                                }}
-                              >
-                                Create tag
-                              </button>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
+                      <TagCombobox
+                        draftTag={draftTag}
+                        tags={tags}
+                        onChangeTag={setDraftTag}
+                      />
                     </div>
 
                     <div className="workspace__actions">
@@ -632,7 +527,7 @@ function AppShell() {
                   <EditorPane
                     key={currentNotebook.id}
                     notebook={currentNotebook}
-                    onDraftChange={handleDraftChange}
+                    onDraftChange={handleEditorDraftChange}
                     onUploadImage={handleImageUpload}
                     onSave={() => void persist()}
                     onExportPdf={(contentHtml) => void handleExportPdf(contentHtml)}

@@ -1,20 +1,20 @@
 import { desktopApi } from '../../../lib/desktopApi'
-import type { NotebookRecord, NotebookSummary, SaveNotebookPayload } from '../types'
+import type { SaveNotebookPayload } from '../types'
 
 export const listNotebooks = async (params: {
   search: string
   tag: string | null
   includeTrashed: boolean
 }) => {
-  return desktopApi.listNotebooks(params) as Promise<NotebookSummary[]>
+  return desktopApi.listNotebooks(params)
 }
 
 export const getNotebook = async (id: number) => {
-  return desktopApi.getNotebook(id) as Promise<NotebookRecord | null>
+  return desktopApi.getNotebook(id)
 }
 
 export const createNotebook = async (title: string) => {
-  return desktopApi.createNotebook(title) as Promise<NotebookRecord>
+  return desktopApi.createNotebook(title)
 }
 
 export const discardEmptyNotebook = async (id: number) => {
@@ -22,7 +22,7 @@ export const discardEmptyNotebook = async (id: number) => {
 }
 
 export const saveNotebook = async (payload: SaveNotebookPayload) => {
-  return desktopApi.saveNotebook(payload) as Promise<NotebookRecord>
+  return desktopApi.saveNotebook(payload)
 }
 
 export const softDeleteNotebook = async (id: number) => {

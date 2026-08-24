@@ -102,36 +102,17 @@ const updateEntry = (database, type, id, payload) => {
   return { ok: true }
 }
 
+const { softDeleteToRecycleBin } = require('./recycle-bin.cjs')
+
 const softDeleteEntry = (database, type, id) => {
   const { tableName, category, itemType } = getEntryType(type)
-  const moveToRecycleBin = database.transaction(() => {
-    const entry = database
-      .prepare(`SELECT title FROM ${tableName} WHERE id = ? AND deleted_at IS NULL`)
-      .get(id)
-
-    if (!entry) {
-      throw new Error('Entry not found.')
-    }
-
-    database
-      .prepare(`UPDATE ${tableName} SET deleted_at = datetime('now') WHERE id = ?`)
-      .run(id)
-
-    database
-      .prepare(
-        `
-        INSERT INTO recycle_bin_items
-          (id, category, item_type, original_id, display_title)
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT(category, item_type, original_id)
-        DO UPDATE SET display_title = excluded.display_title, deleted_at = datetime('now')
-      `,
-      )
-      .run(randomUUID(), category, itemType, String(id), entry.title)
+  return softDeleteToRecycleBin(database, {
+    tableName,
+    category,
+    itemType,
+    originalId: id,
+    notFoundMessage: 'Entry not found.',
   })
-
-  moveToRecycleBin()
-  return { ok: true }
 }
 
 module.exports = {

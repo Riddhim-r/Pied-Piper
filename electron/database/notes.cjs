@@ -167,41 +167,17 @@ const saveNotebook = (database, payload) => {
 
   return getNotebook(database, payload.id)
 }
+const { softDeleteToRecycleBin } = require('./recycle-bin.cjs')
 
 const softDeleteNotebook = (database, id) => {
-  const moveToRecycleBin = database.transaction(() => {
-    const notebook = database
-      .prepare(`SELECT title FROM notebooks WHERE id = ? AND deleted_at IS NULL`)
-      .get(id)
-    if (!notebook) {
-      throw new Error('Notebook not found.')
-    }
-
-    database
-      .prepare(
-        `
-        UPDATE notebooks
-        SET deleted_at = datetime('now'), updated_at = datetime('now')
-        WHERE id = ?
-      `,
-      )
-      .run(id)
-
-    database
-      .prepare(
-        `
-        INSERT INTO recycle_bin_items
-          (id, category, item_type, original_id, display_title)
-        VALUES (?, 'notes', 'notebook', ?, ?)
-        ON CONFLICT(category, item_type, original_id)
-        DO UPDATE SET display_title = excluded.display_title, deleted_at = datetime('now')
-      `,
-      )
-      .run(randomUUID(), String(id), notebook.title)
+  return softDeleteToRecycleBin(database, {
+    tableName: 'notebooks',
+    category: 'notes',
+    itemType: 'notebook',
+    originalId: id,
+    touchUpdatedAt: true,
+    notFoundMessage: 'Notebook not found.',
   })
-
-  moveToRecycleBin()
-  return { ok: true }
 }
 
 const restoreNotebook = (database, id) => {

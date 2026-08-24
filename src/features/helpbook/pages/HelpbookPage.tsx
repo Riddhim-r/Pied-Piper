@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { desktopApi } from '../../../lib/desktopApi'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
+import { TagBar } from '../../../components/TagBar'
+import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
+import { useTagFilter } from '../../../hooks/useTagFilter'
+import {
+  createHelpbookEntry,
+  deleteHelpbookEntry,
+  listHelpbookEntries,
+  updateHelpbookEntry,
+} from '../services/helpbookService'
 
 export type HelpStep = {
   title?: string
@@ -23,7 +31,7 @@ function parseStep(raw: string | HelpStep): HelpStep {
   if (typeof raw === 'object' && raw !== null) {
     return {
       title: typeof raw.title === 'string' ? raw.title : '',
-      text: typeof raw.text === 'string' ? raw.text : ''
+      text: typeof raw.text === 'string' ? raw.text : '',
     }
   }
   return { title: '', text: '' }
@@ -31,7 +39,6 @@ function parseStep(raw: string | HelpStep): HelpStep {
 
 const HelpbookPage = () => {
   const [entries, setEntries] = useState<HelpEntry[]>([])
-  const [activeTag, setActiveTag] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -41,8 +48,6 @@ const HelpbookPage = () => {
   const [stepTitleInput, setStepTitleInput] = useState('')
   const [stepTextInput, setStepTextInput] = useState('')
   const [steps, setSteps] = useState<HelpStep[]>([])
-  const [tagSearch, setTagSearch] = useState('')
-  const [tagDropdownOpen, setTagDropdownOpen] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
@@ -50,10 +55,15 @@ const HelpbookPage = () => {
   const [editingStepTitleValue, setEditingStepTitleValue] = useState('')
   const [editingStepTextValue, setEditingStepTextValue] = useState('')
 
+  const { activeTag, setActiveTag, allTags, visibleEntries } = useTagFilter(
+    entries,
+    selectedTag,
+  )
+
   useEffect(() => {
     const loadEntries = async () => {
       try {
-        const items = await desktopApi.listHelpbook()
+        const items = await listHelpbookEntries()
         setEntries(items as HelpEntry[])
       } catch (loadError) {
         console.error(loadError)
@@ -66,39 +76,10 @@ const HelpbookPage = () => {
     loadEntries()
   }, [])
 
-  useEffect(() => {
-    if (activeTag !== 'all') {
-      const stillExists = entries.some((entry) => entry.tags.includes(activeTag))
-      if (!stillExists) {
-        setActiveTag('all')
-      }
-    }
-  }, [entries, activeTag])
-
   const selectedEntry = useMemo(() => {
     if (!selectedEntryId) return null
     return entries.find((e) => e.id === selectedEntryId) ?? null
   }, [entries, selectedEntryId])
-
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>()
-    entries.forEach((entry) => entry.tags.forEach((tag) => tagSet.add(tag)))
-    if (selectedTag.trim()) {
-      tagSet.add(selectedTag.trim())
-    }
-    return Array.from(tagSet).sort()
-  }, [entries, selectedTag])
-
-  const filteredTags = useMemo(() => {
-    const query = tagSearch.trim().toLowerCase()
-    if (!query) return allTags
-    return allTags.filter((tag) => tag.toLowerCase().includes(query))
-  }, [allTags, tagSearch])
-
-  const visibleEntries = useMemo(() => {
-    if (activeTag === 'all') return entries
-    return entries.filter((entry) => entry.tags.includes(activeTag))
-  }, [entries, activeTag])
 
   const resetForm = () => {
     setTitle('')
@@ -108,19 +89,9 @@ const HelpbookPage = () => {
     setSteps([])
     setEditingId(null)
     setError('')
-    setTagSearch('')
-    setTagDropdownOpen(false)
     setEditingStepIndex(null)
     setEditingStepTitleValue('')
     setEditingStepTextValue('')
-  }
-
-  const handleAddTag = () => {
-    const trimmed = tagSearch.trim()
-    if (!trimmed) return
-    setSelectedTag(trimmed)
-    setTagDropdownOpen(false)
-    setTagSearch('')
   }
 
   const handleAddStep = () => {
@@ -149,8 +120,8 @@ const HelpbookPage = () => {
       prev.map((step, idx) =>
         idx === editingStepIndex
           ? { title: editingStepTitleValue.trim(), text: trimmedText }
-          : step
-      )
+          : step,
+      ),
     )
     setEditingStepIndex(null)
     setEditingStepTitleValue('')
@@ -182,7 +153,7 @@ const HelpbookPage = () => {
 
     if (editingId) {
       try {
-        await desktopApi.updateHelpbook(editingId, {
+        await updateHelpbookEntry(editingId, {
           title: title.trim(),
           tags: [selectedTag.trim()],
           steps: payloadSteps,
@@ -202,12 +173,12 @@ const HelpbookPage = () => {
                 tags: [selectedTag.trim()],
                 steps: payloadSteps as any,
               }
-            : entry
-        )
+            : entry,
+        ),
       )
     } else {
       try {
-        const created = await desktopApi.createHelpbook({
+        const created = await createHelpbookEntry({
           title: title.trim(),
           tags: [selectedTag.trim()],
           steps: payloadSteps,
@@ -252,7 +223,7 @@ const HelpbookPage = () => {
     if (!pendingDeleteId) return
 
     try {
-      await desktopApi.deleteHelpbook(pendingDeleteId)
+      await deleteHelpbookEntry(pendingDeleteId)
     } catch (deleteError) {
       console.error(deleteError)
       setError('Could not delete entry.')
@@ -275,9 +246,11 @@ const HelpbookPage = () => {
       if (!selectedEntryId) return
 
       const key = event.key.toLowerCase()
-      const isAltBack = event.altKey && !event.ctrlKey && !event.metaKey && (
-        key === 'arrowleft' || key === '<' || key === ','
-      )
+      const isAltBack =
+        event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        (key === 'arrowleft' || key === '<' || key === ',')
 
       if (isAltBack || key === 'escape') {
         event.preventDefault()
@@ -372,7 +345,7 @@ const HelpbookPage = () => {
                         borderRadius: '12px',
                         background: 'rgba(255, 255, 255, 0.65)',
                         border: '1px solid rgba(0, 0, 0, 0.08)',
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)'
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: step.title ? '8px' : '6px' }}>
@@ -383,7 +356,7 @@ const HelpbookPage = () => {
                             borderRadius: '999px',
                             padding: '3px 10px',
                             fontSize: '0.78rem',
-                            fontWeight: 700
+                            fontWeight: 700,
                           }}
                         >
                           Step {index + 1}
@@ -400,7 +373,7 @@ const HelpbookPage = () => {
                           lineHeight: 1.6,
                           fontSize: '0.98rem',
                           color: '#2a2a32',
-                          marginTop: '6px'
+                          marginTop: '6px',
                         }}
                       >
                         {step.text}
@@ -434,25 +407,7 @@ const HelpbookPage = () => {
               </button>
             </div>
 
-            <div className="tag-bar">
-              <button
-                type="button"
-                className={activeTag === 'all' ? 'tag-chip active' : 'tag-chip'}
-                onClick={() => setActiveTag('all')}
-              >
-                all
-              </button>
-              {allTags.map((tag) => (
-                <button
-                  type="button"
-                  className={activeTag === tag ? 'tag-chip active' : 'tag-chip'}
-                  key={tag}
-                  onClick={() => setActiveTag(tag)}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
+            <TagBar activeTag={activeTag} tags={allTags} onSelectTag={setActiveTag} />
 
             {showForm ? (
               <div className="card form-grid">
@@ -463,46 +418,11 @@ const HelpbookPage = () => {
 
                 <div className="field">
                   <span>What domain does it fall into?</span>
-                  <div className="tag-dropdown">
-                    <button
-                      type="button"
-                      className="btn ghost"
-                      onClick={() => setTagDropdownOpen((prev) => !prev)}
-                    >
-                      {selectedTag ? `Tag: ${selectedTag}` : 'Pick a tag'}
-                    </button>
-
-                    {tagDropdownOpen ? (
-                      <div className="dropdown-panel">
-                        <input
-                          type="text"
-                          placeholder="Search tags"
-                          value={tagSearch}
-                          onChange={(event) => setTagSearch(event.target.value)}
-                        />
-                        <div className="dropdown-list">
-                          {filteredTags.length === 0 ? <p className="muted">No tags found.</p> : null}
-                          {filteredTags.map((tag) => (
-                            <button
-                              type="button"
-                              key={tag}
-                              className="dropdown-item"
-                              onClick={() => {
-                                setSelectedTag(tag)
-                                setTagDropdownOpen(false)
-                                setTagSearch('')
-                              }}
-                            >
-                              {tag}
-                            </button>
-                          ))}
-                        </div>
-                        <button type="button" className="btn primary" onClick={handleAddTag}>
-                          Add new tag
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
+                  <TagSelectDropdown
+                    selectedTag={selectedTag}
+                    allTags={allTags}
+                    onSelectTag={setSelectedTag}
+                  />
                 </div>
 
                 <div className="field">
@@ -632,7 +552,7 @@ const HelpbookPage = () => {
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
-                          lineHeight: 1.35
+                          lineHeight: 1.35,
                         }}
                       >
                         {entry.title}

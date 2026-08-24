@@ -81,18 +81,6 @@ const runMigrations = (database) => {
       UNIQUE(category, item_type, original_id)
     );
 
-    INSERT OR IGNORE INTO recycle_bin_items
-      (id, category, item_type, original_id, display_title, deleted_at)
-    SELECT
-      lower(hex(randomblob(16))),
-      'encyclopedia',
-      'topic',
-      id,
-      title,
-      deleted_at
-    FROM encyclopedia_topics
-    WHERE deleted_at IS NOT NULL;
-
     CREATE TABLE IF NOT EXISTS helpbook_entries (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -145,18 +133,6 @@ const runMigrations = (database) => {
 
     CREATE INDEX IF NOT EXISTS idx_notebooks_status_updated
       ON notebooks(deleted_at, updated_at DESC);
-
-    INSERT OR IGNORE INTO recycle_bin_items
-      (id, category, item_type, original_id, display_title, deleted_at)
-    SELECT
-      lower(hex(randomblob(16))),
-      'notes',
-      'notebook',
-      CAST(id AS TEXT),
-      title,
-      deleted_at
-    FROM notebooks
-    WHERE deleted_at IS NOT NULL;
   `)
 
   const ensureColumn = (tableName, columnName, columnDefinition) => {
@@ -179,30 +155,6 @@ const runMigrations = (database) => {
     CREATE INDEX IF NOT EXISTS idx_ai_prompts_status
       ON ai_prompt_entries(deleted_at, created_at DESC);
 
-    INSERT OR IGNORE INTO recycle_bin_items
-      (id, category, item_type, original_id, display_title, deleted_at)
-    SELECT
-      lower(hex(randomblob(16))),
-      'helpbook',
-      'entry',
-      id,
-      title,
-      deleted_at
-    FROM helpbook_entries
-    WHERE deleted_at IS NOT NULL;
-
-    INSERT OR IGNORE INTO recycle_bin_items
-      (id, category, item_type, original_id, display_title, deleted_at)
-    SELECT
-      lower(hex(randomblob(16))),
-      'ai-prompts',
-      'prompt',
-      id,
-      title,
-      deleted_at
-    FROM ai_prompt_entries
-    WHERE deleted_at IS NOT NULL;
-
     CREATE TABLE IF NOT EXISTS app_settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -212,6 +164,60 @@ const runMigrations = (database) => {
     SET value = 'Pied Piper'
     WHERE key = 'application_name' AND value = 'Coursebook';
   `)
+
+  const currentVersion = database.pragma('user_version', { simple: true })
+  if (currentVersion < 1) {
+    database.exec(`
+      INSERT OR IGNORE INTO recycle_bin_items
+        (id, category, item_type, original_id, display_title, deleted_at)
+      SELECT
+        lower(hex(randomblob(16))),
+        'encyclopedia',
+        'topic',
+        id,
+        title,
+        deleted_at
+      FROM encyclopedia_topics
+      WHERE deleted_at IS NOT NULL;
+
+      INSERT OR IGNORE INTO recycle_bin_items
+        (id, category, item_type, original_id, display_title, deleted_at)
+      SELECT
+        lower(hex(randomblob(16))),
+        'notes',
+        'notebook',
+        CAST(id AS TEXT),
+        title,
+        deleted_at
+      FROM notebooks
+      WHERE deleted_at IS NOT NULL;
+
+      INSERT OR IGNORE INTO recycle_bin_items
+        (id, category, item_type, original_id, display_title, deleted_at)
+      SELECT
+        lower(hex(randomblob(16))),
+        'helpbook',
+        'entry',
+        id,
+        title,
+        deleted_at
+      FROM helpbook_entries
+      WHERE deleted_at IS NOT NULL;
+
+      INSERT OR IGNORE INTO recycle_bin_items
+        (id, category, item_type, original_id, display_title, deleted_at)
+      SELECT
+        lower(hex(randomblob(16))),
+        'ai-prompts',
+        'prompt',
+        id,
+        title,
+        deleted_at
+      FROM ai_prompt_entries
+      WHERE deleted_at IS NOT NULL;
+    `)
+    database.pragma('user_version = 1')
+  }
 }
 
 module.exports = { copyLegacyDatabase, ensureDatabase, runMigrations }

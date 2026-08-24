@@ -117,42 +117,17 @@ const updateTopic = (database, id, payload) => {
   return { ok: true }
 }
 
+const { softDeleteToRecycleBin } = require('./recycle-bin.cjs')
+
 const deleteTopic = (database, id) => {
-  const moveToRecycleBin = database.transaction(() => {
-    const topic = database
-      .prepare(`SELECT title FROM encyclopedia_topics WHERE id = ? AND deleted_at IS NULL`)
-      .get(id)
-
-    if (!topic) {
-      return
-    }
-
-    database
-      .prepare(
-        `
-        UPDATE encyclopedia_topics
-        SET deleted_at = datetime('now'), updated_at = datetime('now')
-        WHERE id = ?
-      `,
-      )
-      .run(id)
-
-    database
-      .prepare(
-        `
-        INSERT INTO recycle_bin_items
-          (id, category, item_type, original_id, display_title)
-        VALUES (?, 'encyclopedia', 'topic', ?, ?)
-        ON CONFLICT(category, item_type, original_id)
-        DO UPDATE SET display_title = excluded.display_title, deleted_at = datetime('now')
-      `,
-      )
-      .run(randomUUID(), id, topic.title)
+  return softDeleteToRecycleBin(database, {
+    tableName: 'encyclopedia_topics',
+    category: 'encyclopedia',
+    itemType: 'topic',
+    originalId: id,
+    touchUpdatedAt: true,
+    notFoundMessage: null,
   })
-
-  moveToRecycleBin()
-
-  return { ok: true }
 }
 
 const listLinks = (database, topicId) => {

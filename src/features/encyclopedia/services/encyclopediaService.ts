@@ -1,13 +1,11 @@
 import { desktopApi } from '../../../lib/desktopApi'
 import type {
-  EncyclopediaLink,
   EncyclopediaLinkInput,
-  EncyclopediaTopic,
   EncyclopediaTopicInput,
 } from '../types/encyclopedia'
 
 export const getEncyclopediaTopics = async () => {
-  return desktopApi.listEncyclopediaTopics() as Promise<EncyclopediaTopic[]>
+  return desktopApi.listEncyclopediaTopics()
 }
 
 export const createEncyclopediaTopic = async (topic: EncyclopediaTopicInput) => {
@@ -26,11 +24,11 @@ export const deleteEncyclopediaTopic = async (topicId: string) => {
 }
 
 export const getEncyclopediaTopic = async (topicId: string) => {
-  return desktopApi.getEncyclopediaTopic(topicId) as Promise<EncyclopediaTopic | null>
+  return desktopApi.getEncyclopediaTopic(topicId)
 }
 
 export const getEncyclopediaLinks = async (topicId: string) => {
-  return desktopApi.listEncyclopediaLinks(topicId) as Promise<EncyclopediaLink[]>
+  return desktopApi.listEncyclopediaLinks(topicId)
 }
 
 export const createEncyclopediaLink = async (

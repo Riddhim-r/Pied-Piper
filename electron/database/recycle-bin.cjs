@@ -146,9 +146,63 @@ const permanentlyDeleteRecycleBinItems = (database, recycleItemIds) => {
   return { processed: remove() }
 }
 
+const { randomUUID } = require('node:crypto')
+
+const softDeleteToRecycleBin = (
+  database,
+  {
+    tableName,
+    category,
+    itemType,
+    originalId,
+    titleColumn = 'title',
+    touchUpdatedAt = false,
+    notFoundMessage = 'Item not found.',
+  },
+) => {
+  const moveToRecycleBin = database.transaction(() => {
+    const item = database
+      .prepare(
+        `SELECT ${titleColumn} AS title FROM ${tableName} WHERE id = ? AND deleted_at IS NULL`,
+      )
+      .get(originalId)
+
+    if (!item) {
+      if (notFoundMessage) {
+        throw new Error(notFoundMessage)
+      }
+      return
+    }
+
+    const updatedAtSql = touchUpdatedAt ? `, updated_at = datetime('now')` : ''
+    database
+      .prepare(
+        `UPDATE ${tableName} SET deleted_at = datetime('now')${updatedAtSql} WHERE id = ?`,
+      )
+      .run(originalId)
+
+    database
+      .prepare(
+        `
+        INSERT INTO recycle_bin_items
+          (id, category, item_type, original_id, display_title)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(category, item_type, original_id)
+        DO UPDATE SET display_title = excluded.display_title, deleted_at = datetime('now')
+      `,
+      )
+      .run(randomUUID(), category, itemType, String(originalId), item.title)
+  })
+
+  moveToRecycleBin()
+  return { ok: true }
+}
+
 module.exports = {
   getRecycleBinCategories,
   listRecycleBinItems,
   permanentlyDeleteRecycleBinItems,
   restoreRecycleBinItems,
+  softDeleteToRecycleBin,
 }
+

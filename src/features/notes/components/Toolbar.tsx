@@ -7,6 +7,7 @@ import {
   Columns3,
   Eraser,
   FileDown,
+  FileUp,
   Heading1,
   Heading2,
   Heading3,
@@ -18,6 +19,7 @@ import {
   Minus,
   Palette,
   Plus,
+  Search,
   Strikethrough,
   Subscript,
   Superscript,
@@ -35,6 +37,8 @@ type ToolbarProps = {
   visible: boolean;
   onToggleVisible: () => void;
   onPickImage: () => void;
+  onImportDocx?: () => void;
+  onToggleFind?: () => void;
   onExportPdf?: () => void;
   isExporting?: boolean;
 };
@@ -110,6 +114,8 @@ export function Toolbar({
   visible,
   onToggleVisible,
   onPickImage,
+  onImportDocx,
+  onToggleFind,
   onExportPdf,
   isExporting
 }: ToolbarProps) {
@@ -460,6 +466,28 @@ export function Toolbar({
                   {section.icon}
                 </button>
               ))}
+              {onImportDocx ? (
+                <button
+                  type="button"
+                  className="toolbar-ribbon__tab workspace__action-button"
+                  onClick={() => onImportDocx()}
+                  aria-label="Import Word Document (.docx)"
+                  data-tooltip="Import Word (.docx)"
+                >
+                  <FileUp size={18} strokeWidth={2.1} />
+                </button>
+              ) : null}
+              {onToggleFind ? (
+                <button
+                  type="button"
+                  className="toolbar-ribbon__tab workspace__action-button"
+                  onClick={() => onToggleFind()}
+                  aria-label="Find in notebook (Ctrl+F)"
+                  data-tooltip="Find (Ctrl+F)"
+                >
+                  <Search size={18} strokeWidth={2.1} />
+                </button>
+              ) : null}
               {onExportPdf ? (
                 <button
                   type="button"

@@ -59,9 +59,16 @@ const {
   validateDatabaseFile,
 } = require('./database/database-files.cjs')
 const { ensureDatabase } = require('./db.cjs')
+const { runPeriodicBackup } = require('./database/backupService.cjs')
 
 const registerIpcHandlers = () => {
   const db = ensureDatabase()
+
+  try {
+    runPeriodicBackup(db, app.getPath('userData'))
+  } catch (backupError) {
+    console.error('Failed to run periodic database backup:', backupError)
+  }
 
   ipcMain.handle('encyclopedia:list-topics', async () => {
     return listTopics(db)

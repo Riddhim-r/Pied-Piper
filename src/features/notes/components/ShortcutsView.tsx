@@ -1,14 +1,19 @@
 import { X } from "lucide-react";
 
 const SHORTCUTS = [
-  ["Ctrl + B", "Bold"],
-  ["Ctrl + I", "Italic"],
+  ["Ctrl + F", "Find text in current notebook"],
+  ["Ctrl + S", "Save notebook instantly"],
+  ["Ctrl + B", "Bold text"],
+  ["Ctrl + I", "Italic text"],
   ["Ctrl + Z", "Undo"],
   ["Ctrl + Y", "Redo"],
-  ["Ctrl + S", "Save instantly"],
   ["Ctrl + Alt + 1", "Heading 1"],
   ["Ctrl + Alt + 2", "Heading 2"],
   ["Ctrl + Alt + 3", "Heading 3"],
+  ["Ctrl + K", "Global search & jump across sections"],
+  ["Ctrl + Shift + T", "Quick navigate to Todo"],
+  ["Escape", "Close Find bar / Exit focus mode / Cancel modal"],
+  ["Enter / Shift + Enter", "Next / Previous match in text find"],
   ["Ctrl + Click", "Open a link"],
   ["/", "Open slash commands at the start of a line"],
   ["/ roman", "Insert a roman-numbered list"],

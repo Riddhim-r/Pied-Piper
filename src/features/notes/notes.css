@@ -1932,3 +1932,77 @@
   color: #ffffff !important;
   border-color: #5b7fa4;
 }
+
+/* Notebook Find in Page Bar */
+.notebook-find-bar {
+  position: absolute;
+  top: 60px;
+  right: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--paper, #ffffff);
+  border: 2px solid var(--ink, #1f2937);
+  box-shadow: var(--shadow, 3px 3px 0px rgba(0, 0, 0, 0.9));
+  border-radius: 4px;
+  animation: slideInDown 0.15s ease-out;
+}
+
+.notebook-find-icon {
+  color: #6b7280;
+}
+
+.notebook-find-input {
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  width: 260px;
+  outline: none;
+  background: inherit;
+  color: inherit;
+}
+
+.notebook-find-input:focus {
+  border-color: #3b82f6;
+}
+
+.notebook-find-counter {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.notebook-find-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+mark.notebook-find-highlight {
+  background-color: #fef08a;
+  color: #000000;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+mark.notebook-find-highlight.is-current-match {
+  background-color: #f97316;
+  color: #ffffff;
+  outline: 2px solid #ea580c;
+  border-radius: 2px;
+}
+
+::highlight(find-matches) {
+  background-color: #fef08a;
+  color: #000000;
+}
+
+::highlight(find-current-match) {
+  background-color: #ea580c;
+  color: #ffffff;
+}

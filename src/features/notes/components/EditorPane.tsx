@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import mammoth from "mammoth";
 import CharacterCount from "@tiptap/extension-character-count";
 import Color from "@tiptap/extension-color";
 import Highlight from "@tiptap/extension-highlight";
@@ -26,6 +27,7 @@ import {
 import { ResizableImage } from "../editor/ResizableImage";
 import type { EditorDraft, NotebookRecord, OutlineHeading } from "../types";
 import { Toolbar } from "./Toolbar";
+import { FindInNotebookBar } from "./FindInNotebookBar";
 import { openNotebookLink } from "../services/notesService";
 
 type SlashCommand = {
@@ -43,7 +45,33 @@ type EditorPaneProps = {
   onExportPdf: (contentHtml: string) => void;
   isExporting: boolean;
   onOutlineChange: (outline: OutlineHeading[], jumpToHeading: (pos: number, key: string) => void) => void;
+  onSetDraftTitle?: (title: string) => void;
+  isDraftBlank?: boolean;
 };
+
+function cleanSearchHighlightMarks(node: JSONContent): JSONContent {
+  if (!node || typeof node !== "object") return node;
+
+  const copy = { ...node };
+
+  if (Array.isArray(copy.marks)) {
+    copy.marks = copy.marks.filter((mark) => {
+      if (mark.type === "highlight") {
+        const color = mark.attrs?.color;
+        if (!color || color === "#fef08a" || color === "#f97316" || color === "#ea580c") {
+          return false;
+        }
+      }
+      return true;
+    });
+  }
+
+  if (Array.isArray(copy.content)) {
+    copy.content = copy.content.map(cleanSearchHighlightMarks);
+  }
+
+  return copy;
+}
 
 function getInitialContent(contentJson: string): JSONContent {
   if (!contentJson) {
@@ -54,7 +82,8 @@ function getInitialContent(contentJson: string): JSONContent {
   }
 
   try {
-    return JSON.parse(contentJson) as JSONContent;
+    const parsed = JSON.parse(contentJson) as JSONContent;
+    return cleanSearchHighlightMarks(parsed);
   } catch {
     return {
       type: "doc",
@@ -205,15 +234,52 @@ export function EditorPane({
   onSave,
   onExportPdf,
   isExporting,
-  onOutlineChange
+  onOutlineChange,
+  onSetDraftTitle,
+  isDraftBlank = false
 }: EditorPaneProps) {
   const [toolbarVisible, setToolbarVisible] = useState(true);
   const [slashIndex, setSlashIndex] = useState(0);
+  const [showFindBar, setShowFindBar] = useState(false);
   const currentNotebookId = useRef<number | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const docxInputRef = useRef<HTMLInputElement | null>(null);
 
   const openImagePicker = () => {
     imageInputRef.current?.click();
+  };
+
+  const openDocxPicker = () => {
+    docxInputRef.current?.click();
+  };
+
+  const handleDocxSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || !editor) {
+      return;
+    }
+
+    const isCurrentEmpty = editor.isEmpty || editor.getText().trim() === "" || isDraftBlank;
+    if (!isCurrentEmpty) {
+      window.alert("Word documents can only be imported into an empty notebook. Create a new notebook to import.");
+      return;
+    }
+
+    try {
+      const fileNameWithoutExt = file.name.replace(/\.docx$/i, "").trim();
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer });
+      if (result.value) {
+        editor.commands.setContent(result.value);
+        if (fileNameWithoutExt) {
+          onSetDraftTitle?.(fileNameWithoutExt);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to import docx document:", error);
+    }
   };
 
   const handleImageSelected = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -399,6 +465,12 @@ export function EditorPane({
           }
         }
 
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+          event.preventDefault();
+          setShowFindBar(true);
+          return true;
+        }
+
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
           event.preventDefault();
           onSave();
@@ -439,6 +511,17 @@ export function EditorPane({
   });
 
   useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        setShowFindBar((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  useEffect(() => {
     if (!editor) {
       return;
     }
@@ -448,9 +531,15 @@ export function EditorPane({
     }
 
     currentNotebookId.current = notebook.id;
-    editor.commands.setContent(getInitialContent(notebook.contentJson));
-    requestAnimationFrame(() => editor.commands.focus("end"));
-  }, [editor, notebook.id, notebook.contentJson]);
+    const initialContent = getInitialContent(notebook.contentJson);
+    editor.commands.setContent(initialContent);
+
+    requestAnimationFrame(() => {
+      annotateHeadingNodes(editor);
+      const outline = extractOutline(editor);
+      onOutlineChange(outline, (pos, key) => jumpToOutlineHeading(editor, key, pos));
+    });
+  }, [editor, notebook.id, notebook.contentJson, onOutlineChange]);
 
   const slashState = computeSlashCommandState(editor);
 
@@ -478,12 +567,25 @@ export function EditorPane({
         hidden
         onChange={handleImageSelected}
       />
+      <input
+        ref={docxInputRef}
+        type="file"
+        accept=".docx"
+        hidden
+        onChange={handleDocxSelected}
+      />
+
+      {showFindBar ? (
+        <FindInNotebookBar editor={editor} onClose={() => setShowFindBar(false)} />
+      ) : null}
 
       <Toolbar
         editor={editor}
         visible={toolbarVisible}
         onToggleVisible={() => setToolbarVisible((value) => !value)}
         onPickImage={openImagePicker}
+        onImportDocx={openDocxPicker}
+        onToggleFind={() => setShowFindBar((prev) => !prev)}
         onExportPdf={() => onExportPdf(editor?.getHTML() ?? "")}
         isExporting={isExporting}
       />

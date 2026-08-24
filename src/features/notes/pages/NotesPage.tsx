@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { List, Maximize2, Minimize2, Save, Trash2, X } from "lucide-react";
 import { useNavigate, Routes, Route } from "react-router-dom";
+import ConfirmDialog from "../../../components/ConfirmDialog";
 import { EditorPane } from "../components/EditorPane";
 import { OutlinePanel } from "../components/OutlinePanel";
 import { ShortcutsView } from "../components/ShortcutsView";
@@ -15,8 +16,8 @@ import {
   getNotebook,
   listNotebooks,
   listTags,
-  permanentlyDeleteNotebook,
   saveNotebook,
+  softDeleteNotebook,
   storeImage
 } from "../services/notesService";
 import type { EditorDraft, NotebookRecord, NotebookSummary, OutlineHeading } from "../types";
@@ -26,6 +27,7 @@ function AppShell() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [pendingDeleteNotebook, setPendingDeleteNotebook] = useState(false);
   const [notesTheme, setNotesTheme] = useState<"light" | "dark">(() => {
     return (localStorage.getItem("notes_theme") as "light" | "dark") || "light";
   });
@@ -40,7 +42,9 @@ function AppShell() {
     draftTag,
     setDraftTag,
     draftContentJson,
+    setDraftContentJson,
     draftPlainTextLength,
+    setDraftPlainTextLength,
     resetDraft,
     isDirty,
     isCurrentDraftBlank,
@@ -145,7 +149,12 @@ function AppShell() {
       });
 
       setCurrentNotebook(saved);
-      resetDraft(saved);
+      if (draftTitle.trim() !== saved.title.trim()) {
+        setDraftTitle(saved.title);
+      }
+      setDraftTag(saved.tag ?? "");
+      setDraftContentJson(saved.contentJson);
+      setDraftPlainTextLength(saved.plainTextLength);
       setLastSavedAt(saved.updatedAt);
       setSaveMessage("Saved.");
       await refreshSidebarData();
@@ -368,22 +377,24 @@ function AppShell() {
     }
   };
 
-  const handleDeleteNotebook = async () => {
+  const handleDeleteNotebook = () => {
     if (!currentNotebook) {
       return;
     }
+    setPendingDeleteNotebook(true);
+  };
 
-    const confirmed = window.confirm(
-      `Delete "${currentNotebook.title}"? This notebook will be removed.`
-    );
-
-    if (!confirmed) {
+  const confirmDeleteNotebook = async () => {
+    if (!currentNotebook) {
+      setPendingDeleteNotebook(false);
       return;
     }
-
-    await permanentlyDeleteNotebook(currentNotebook.id);
+    const targetId = currentNotebook.id;
+    setPendingDeleteNotebook(false);
+    await softDeleteNotebook(targetId);
+    setSelectedId(null);
     clearCurrentNotebook();
-    setSaveMessage("Notebook deleted.");
+    setSaveMessage("Notebook moved to Recycle Bin.");
     await refreshSidebarData();
   };
 
@@ -393,6 +404,19 @@ function AppShell() {
         isFocusMode ? " is-focus-mode" : ""
       }${canShowNavigation && showNavigation ? " has-outline-panel" : ""}`}
     >
+      <ConfirmDialog
+        open={pendingDeleteNotebook}
+        title="Move to Recycle Bin?"
+        message={
+          currentNotebook
+            ? `Move "${currentNotebook.title}" to Recycle Bin? You can restore it anytime.`
+            : "Move notebook to Recycle Bin?"
+        }
+        confirmText="Move to Recycle Bin"
+        cancelText="Cancel"
+        onCancel={() => setPendingDeleteNotebook(false)}
+        onConfirm={() => void confirmDeleteNotebook()}
+      />
       <Sidebar
         notebooks={notebooks}
         selectedId={selectedId}
@@ -536,6 +560,8 @@ function AppShell() {
                       setOutline(nextOutline);
                       setJumpToHeading(() => jump);
                     }}
+                    onSetDraftTitle={setDraftTitle}
+                    isDraftBlank={isCurrentDraftBlank}
                   />
                 </>
               ) : (

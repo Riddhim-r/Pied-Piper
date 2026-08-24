@@ -30,7 +30,7 @@ const shortcuts = [
   ['Ctrl + N', 'Create a new item in the current feature'],
   ['Ctrl + Shift + T', 'Open Todo'],
   ['Ctrl + Shift + Delete', 'Open the Recycle Bin'],
-  ['Escape', 'Close the active search, form, menu, or dialog'],
+  ['Escape', 'Close active search, menu, dialog, or empty creation form (preserves content if non-empty)'],
 ]
 
 const formatBytes = (bytes: number) => {

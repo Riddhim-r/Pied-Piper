@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Check, Copy } from 'lucide-react'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
 import { TagBar } from '../../../components/TagBar'
 import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
+import { SearchBar } from '../../../components/SearchBar'
 import { useTagFilter } from '../../../hooks/useTagFilter'
 import {
   createPromptEntry,
@@ -24,6 +26,8 @@ const AiPromptsPage = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({})
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const [title, setTitle] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
@@ -36,6 +40,14 @@ const AiPromptsPage = () => {
     entries,
     selectedTag,
   )
+
+  const searchedEntries = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return visibleEntries
+    return visibleEntries.filter((entry) =>
+      entry.title.toLowerCase().includes(query)
+    )
+  }, [visibleEntries, searchQuery])
 
   useEffect(() => {
     const loadEntries = async () => {
@@ -53,8 +65,56 @@ const AiPromptsPage = () => {
     loadEntries()
   }, [])
 
+  const decodeHtmlEntities = (text: string): string => {
+    if (!text || !text.includes('&')) return text
+    try {
+      const doc = new DOMParser().parseFromString(text, 'text/html')
+      return doc.body.textContent || text
+    } catch {
+      return text
+    }
+  }
+
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const handleCopyPrompt = async (entry: PromptEntry) => {
+    const fullText = entry.steps.map(decodeHtmlEntities).join('\n')
+    let success = false
+
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(fullText)
+        success = true
+      } catch {
+        success = false
+      }
+    }
+
+    if (!success) {
+      try {
+        const textArea = document.createElement('textarea')
+        textArea.value = fullText
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        success = document.execCommand('copy')
+        document.body.removeChild(textArea)
+      } catch {
+        success = false
+      }
+    }
+
+    if (success) {
+      setCopiedId(entry.id)
+      setTimeout(() => {
+        setCopiedId((prev) => (prev === entry.id ? null : prev))
+      }, 2000)
+    }
   }
 
   const resetForm = () => {
@@ -64,6 +124,28 @@ const AiPromptsPage = () => {
     setEditingId(null)
     setError('')
   }
+
+  useEffect(() => {
+    if (!showForm) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (pendingDeleteId !== null) return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      const isFormEmpty = !title.trim() && !selectedTag.trim() && !stepsText.trim()
+
+      if (isFormEmpty) {
+        resetForm()
+        setShowForm(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
+  }, [showForm, title, selectedTag, stepsText, pendingDeleteId])
 
   const handleSubmit = async () => {
     setError('')
@@ -75,9 +157,10 @@ const AiPromptsPage = () => {
       setError('Pick a tag before saving.')
       return
     }
+    const cleanTitle = decodeHtmlEntities(title.trim())
     const steps = stepsText
       .split('\n')
-      .map((step) => step.trim())
+      .map((step) => decodeHtmlEntities(step.trim()))
       .filter(Boolean)
 
     if (steps.length === 0) {
@@ -88,7 +171,7 @@ const AiPromptsPage = () => {
     if (editingId) {
       try {
         await updatePromptEntry(editingId, {
-          title: title.trim(),
+          title: cleanTitle,
           tags: [selectedTag.trim()],
           steps,
         })
@@ -102,18 +185,18 @@ const AiPromptsPage = () => {
         prev.map((entry) =>
           entry.id === editingId
             ? {
-                ...entry,
-                title: title.trim(),
-                tags: [selectedTag.trim()],
-                steps,
-              }
+              ...entry,
+              title: cleanTitle,
+              tags: [selectedTag.trim()],
+              steps,
+            }
             : entry,
         ),
       )
     } else {
       try {
         const created = await createPromptEntry({
-          title: title.trim(),
+          title: cleanTitle,
           tags: [selectedTag.trim()],
           steps,
         })
@@ -121,7 +204,7 @@ const AiPromptsPage = () => {
         setEntries((prev) => [
           {
             id: String(created.id),
-            title: title.trim(),
+            title: cleanTitle,
             tags: [selectedTag.trim()],
             steps,
           },
@@ -215,6 +298,12 @@ const AiPromptsPage = () => {
           </button>
         </div>
 
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search prompt titles..."
+        />
+
         <TagBar activeTag={activeTag} tags={allTags} onSelectTag={setActiveTag} />
 
         {showForm ? (
@@ -254,7 +343,6 @@ const AiPromptsPage = () => {
               <button
                 type="button"
                 className="btn ghost"
-                data-global-close
                 onClick={() => {
                   resetForm()
                   setShowForm(false)
@@ -271,23 +359,27 @@ const AiPromptsPage = () => {
 
         {isLoading ? <div className="card">Loading AI Prompt Vault...</div> : null}
 
-        {!isLoading && visibleEntries.length === 0 ? (
+        {!isLoading && searchedEntries.length === 0 ? (
           <div className="card empty-state">
             <h3>
               {entries.length === 0
                 ? 'No AI Prompt Vault entries yet'
+                : searchQuery.trim()
+                ? `No prompts found for "${searchQuery}"`
                 : 'No prompts for this tag'}
             </h3>
             <p>
               {entries.length === 0
                 ? 'Add your first reusable prompt using the button above.'
+                : searchQuery.trim()
+                ? 'Try adjusting your search query or tag filter.'
                 : 'Choose another tag or select all to see your saved prompts.'}
             </p>
           </div>
         ) : null}
 
         <div className="stack" style={{ gap: '20px' }}>
-          {visibleEntries.map((entry) => {
+          {searchedEntries.map((entry) => {
             const isExpanded = Boolean(expandedIds[entry.id])
             const totalLines = entry.steps.length
             const isLong = totalLines > 5
@@ -323,7 +415,7 @@ const AiPromptsPage = () => {
                     const isLastTruncatedLine = isLong && !isExpanded && index === 4
                     return (
                       <p className="step-line" key={`${entry.id}-${index}`} style={{ margin: 0 }}>
-                        {step}
+                        {decodeHtmlEntities(step)}
                         {isLastTruncatedLine ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
                             <span>....</span>
@@ -367,7 +459,33 @@ const AiPromptsPage = () => {
                   </button>
                 ) : null}
 
-                <div className="card-actions" style={{ gap: '8px' }}>
+                <div className="card-actions" style={{ gap: '8px', alignItems: 'center' }}>
+                  <button
+                    className="btn primary"
+                    type="button"
+                    style={{
+                      padding: '4px 12px',
+                      fontSize: '0.78rem',
+                      height: 'auto',
+                      minHeight: 'unset',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                    onClick={() => handleCopyPrompt(entry)}
+                  >
+                    {copiedId === entry.id ? (
+                      <>
+                        <Check size={14} />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
                   <button
                     className="btn ghost"
                     type="button"

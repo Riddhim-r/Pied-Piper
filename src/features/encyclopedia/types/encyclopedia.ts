@@ -4,6 +4,8 @@ export type EncyclopediaTopic = {
   description: string
   createdAt: string
   updatedAt: string
+  linkCount?: number
+  pdfCount?: number
 }
 
 export type EncyclopediaTopicInput = {
@@ -24,4 +26,13 @@ export type EncyclopediaLink = {
 export type EncyclopediaLinkInput = {
   label: string
   url: string
+}
+
+export type EncyclopediaPdf = {
+  id: string
+  topicId: string
+  fileName: string
+  filePath: string
+  fileSize: number
+  createdAt: string
 }

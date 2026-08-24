@@ -1,6 +1,7 @@
 import { ArrowLeft, Keyboard, Moon, Plus, Sun, Tag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { SearchBar } from "../../../components/SearchBar";
 import type { NotebookSummary } from "../types";
 
 type SidebarProps = {
@@ -107,14 +108,13 @@ export function Sidebar({
         </button>
       </div>
 
-      <label className="search-shell">
-        <input
-          aria-label="Search notebooks"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Find a notebook..."
-        />
-      </label>
+      <SearchBar
+        value={search}
+        onChange={onSearchChange}
+        placeholder="Find a notebook..."
+        ariaLabel="Search notebooks"
+        style={{ marginBottom: '0px', borderRadius: '16px', border: '2px solid var(--sidebar-line, var(--ink))', boxShadow: 'none' }}
+      />
 
       {showTagList ? (
         <section className="tag-panel">

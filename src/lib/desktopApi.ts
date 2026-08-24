@@ -78,6 +78,11 @@ export const desktopApi = {
     ensureDesktopApi().updateEncyclopediaLink(id, payload),
   deleteEncyclopediaLink: (id: string) => ensureDesktopApi().deleteEncyclopediaLink(id),
   openEncyclopediaLink: (url: string) => ensureDesktopApi().openEncyclopediaLink(url),
+  uploadEncyclopediaPdf: (topicId: string) => ensureDesktopApi().uploadEncyclopediaPdf(topicId),
+  listEncyclopediaPdfs: (topicId: string) => ensureDesktopApi().listEncyclopediaPdfs(topicId),
+  deleteEncyclopediaPdf: (id: string) => ensureDesktopApi().deleteEncyclopediaPdf(id),
+  readEncyclopediaPdfData: (filePath: string) => ensureDesktopApi().readEncyclopediaPdfData(filePath),
+  openEncyclopediaPdfExternal: (filePath: string) => ensureDesktopApi().openEncyclopediaPdfExternal(filePath),
 
   // Todo
   getTodoState: () =>

@@ -4,6 +4,7 @@ import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
 import { TagBar } from '../../../components/TagBar'
 import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
+import { SearchBar } from '../../../components/SearchBar'
 import { useTagFilter } from '../../../hooks/useTagFilter'
 import {
   createHelpbookEntry,
@@ -42,6 +43,7 @@ const HelpbookPage = () => {
   const [showForm, setShowForm] = useState(false)
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const [title, setTitle] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
@@ -59,6 +61,14 @@ const HelpbookPage = () => {
     entries,
     selectedTag,
   )
+
+  const searchedEntries = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return visibleEntries
+    return visibleEntries.filter((entry) =>
+      entry.title.toLowerCase().includes(query)
+    )
+  }, [visibleEntries, searchQuery])
 
   useEffect(() => {
     const loadEntries = async () => {
@@ -94,6 +104,41 @@ const HelpbookPage = () => {
     setEditingStepTextValue('')
   }
 
+  useEffect(() => {
+    if (!showForm) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (pendingDeleteId !== null) return
+
+      event.preventDefault()
+      event.stopPropagation()
+
+      const isFormEmpty =
+        !title.trim() &&
+        !selectedTag.trim() &&
+        !stepTitleInput.trim() &&
+        !stepTextInput.trim() &&
+        steps.length === 0
+
+      if (isFormEmpty) {
+        resetForm()
+        setShowForm(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
+  }, [
+    showForm,
+    title,
+    selectedTag,
+    stepTitleInput,
+    stepTextInput,
+    steps,
+    pendingDeleteId,
+  ])
+
   const handleAddStep = () => {
     const trimmedText = stepTextInput.trim()
     if (!trimmedText) return
@@ -106,7 +151,7 @@ const HelpbookPage = () => {
     setSteps((prev) => prev.filter((_, idx) => idx !== index))
   }
 
-  const handleEditStep = (index: number) => {
+  const handleStartStepEdit = (index: number) => {
     setEditingStepIndex(index)
     setEditingStepTitleValue(steps[index]?.title ?? '')
     setEditingStepTextValue(steps[index]?.text ?? '')
@@ -205,7 +250,6 @@ const HelpbookPage = () => {
   }
 
   const handleEdit = (entry: HelpEntry) => {
-    setShowForm(true)
     setEditingId(entry.id)
     setTitle(entry.title)
     setSelectedTag(entry.tags[0] ?? '')
@@ -242,26 +286,165 @@ const HelpbookPage = () => {
   }
 
   useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
-      if (!selectedEntryId) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      if (pendingDeleteId !== null) return
 
-      const key = event.key.toLowerCase()
-      const isAltBack =
-        event.altKey &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        (key === 'arrowleft' || key === '<' || key === ',')
+      // 1. If editing a topic on its detail page -> exit edit mode back to read-only view
+      if (selectedEntryId && editingId === selectedEntryId) {
+        event.preventDefault()
+        event.stopPropagation()
+        setEditingId(null)
+        resetForm()
+        return
+      }
 
-      if (isAltBack || key === 'escape') {
+      // 2. If creating a topic on main Helpbook page -> close create modal/form
+      if (showForm && !selectedEntryId) {
+        event.preventDefault()
+        event.stopPropagation()
+        setShowForm(false)
+        resetForm()
+        return
+      }
+
+      // 3. If viewing a topic detail page in read-only mode -> go back to main list
+      if (selectedEntryId) {
         event.preventDefault()
         event.stopPropagation()
         setSelectedEntryId(null)
+        return
       }
     }
 
-    window.addEventListener('keydown', handleKeydown, true)
-    return () => window.removeEventListener('keydown', handleKeydown, true)
-  }, [selectedEntryId])
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => window.removeEventListener('keydown', handleKeyDown, true)
+  }, [selectedEntryId, editingId, showForm, pendingDeleteId])
+
+  const renderForm = () => (
+    <div className="card form-grid">
+      <label className="field">
+        <span>What's bugging you? (Topic Title)</span>
+        <input value={title} onChange={(event) => setTitle(event.target.value)} />
+      </label>
+
+      <div className="field">
+        <span>What domain does it fall into?</span>
+        <TagSelectDropdown
+          selectedTag={selectedTag}
+          allTags={allTags}
+          onSelectTag={setSelectedTag}
+        />
+      </div>
+
+      <div className="field">
+        <span>Add a Step</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input
+            type="text"
+            placeholder="Step Title (optional)"
+            value={stepTitleInput}
+            onChange={(event) => setStepTitleInput(event.target.value)}
+          />
+          <textarea
+            rows={3}
+            placeholder="Explain what to do..."
+            value={stepTextInput}
+            onChange={(event) => setStepTextInput(event.target.value)}
+          />
+          <button className="btn ghost" type="button" onClick={handleAddStep}>
+            + Add Step
+          </button>
+        </div>
+      </div>
+
+      {steps.length > 0 ? (
+        <div className="steps-preview" style={{ marginTop: '16px' }}>
+          <h4 style={{ marginBottom: '8px' }}>Steps Added ({steps.length})</h4>
+          {steps.map((step, idx) => {
+            const isEditingThisStep = editingStepIndex === idx
+            return (
+              <div
+                key={idx}
+                className="card"
+                style={{ padding: '12px', marginBottom: '8px', background: '#f8fafc' }}
+              >
+                {isEditingThisStep ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <input
+                      type="text"
+                      value={editingStepTitleValue}
+                      onChange={(e) => setEditingStepTitleValue(e.target.value)}
+                      placeholder="Step Title (optional)"
+                    />
+                    <textarea
+                      rows={2}
+                      value={editingStepTextValue}
+                      onChange={(e) => setEditingStepTextValue(e.target.value)}
+                      placeholder="Step explanation..."
+                    />
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                      <button className="btn ghost" type="button" onClick={handleCancelStepEdit}>
+                        Cancel
+                      </button>
+                      <button className="btn primary" type="button" onClick={handleSaveStepEdit}>
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      {step.title ? (
+                        <h5 style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>{step.title}</h5>
+                      ) : null}
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>{step.text}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        className="btn ghost"
+                        type="button"
+                        style={{ padding: '2px 6px', fontSize: '0.75rem' }}
+                        onClick={() => handleStartStepEdit(idx)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn danger"
+                        type="button"
+                        style={{ padding: '2px 6px', fontSize: '0.75rem' }}
+                        onClick={() => handleRemoveStep(idx)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <div className="form-actions">
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => {
+            resetForm()
+            setShowForm(false)
+          }}
+        >
+          Cancel
+        </button>
+        <button type="button" className="btn primary" onClick={handleSubmit}>
+          {editingId ? 'Save Changes' : 'Save Entry'}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="page">
@@ -273,7 +456,11 @@ const HelpbookPage = () => {
             <button
               type="button"
               className="btn ghost"
-              onClick={() => setSelectedEntryId(null)}
+              onClick={() => {
+                setSelectedEntryId(null)
+                setEditingId(null)
+                resetForm()
+              }}
             >
               Back
             </button>
@@ -303,14 +490,29 @@ const HelpbookPage = () => {
               <button
                 type="button"
                 className="btn ghost"
-                onClick={() => setSelectedEntryId(null)}
+                onClick={() => {
+                  setSelectedEntryId(null)
+                  setEditingId(null)
+                  resetForm()
+                }}
                 style={{ fontWeight: 600 }}
               >
                 ← Back to Topics
               </button>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="btn ghost" onClick={() => handleEdit(selectedEntry)}>
-                  Edit
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    if (editingId === selectedEntry.id) {
+                      setEditingId(null)
+                      resetForm()
+                    } else {
+                      handleEdit(selectedEntry)
+                    }
+                  }}
+                >
+                  {editingId === selectedEntry.id ? 'Cancel Edit' : 'Edit'}
                 </button>
                 <button type="button" className="btn danger" onClick={() => handleDelete(selectedEntry.id)}>
                   Delete
@@ -318,71 +520,75 @@ const HelpbookPage = () => {
               </div>
             </div>
 
-            <div className="card" style={{ padding: '24px' }}>
-              <div className="card-head" style={{ marginBottom: '16px' }}>
-                <h1 style={{ fontSize: '1.75rem', margin: 0 }}>{selectedEntry.title}</h1>
-                <div className="pill-row">
-                  {selectedEntry.tags.map((tag) => (
-                    <span className="pill" key={tag}>
-                      {tag}
-                    </span>
-                  ))}
+            {editingId === selectedEntry.id ? (
+              renderForm()
+            ) : (
+              <div className="card" style={{ padding: '24px' }}>
+                <div className="card-head" style={{ marginBottom: '16px' }}>
+                  <h1 style={{ fontSize: '1.75rem', margin: 0 }}>{selectedEntry.title}</h1>
+                  <div className="pill-row">
+                    {selectedEntry.tags.map((tag) => (
+                      <span className="pill" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <h3 style={{ borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '10px', marginTop: '24px' }}>
-                Step-by-Step How-To Guide
-              </h3>
+                <h3 style={{ borderBottom: '1px solid rgba(0,0,0,0.1)', paddingBottom: '10px', marginTop: '24px' }}>
+                  Step-by-Step How-To Guide
+                </h3>
 
-              <div className="steps" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
-                {selectedEntry.steps.map((rawStep, index) => {
-                  const step = parseStep(rawStep)
-                  return (
-                    <div
-                      key={index}
-                      style={{
-                        padding: '16px 20px',
-                        borderRadius: '12px',
-                        background: 'rgba(255, 255, 255, 0.65)',
-                        border: '1px solid rgba(0, 0, 0, 0.08)',
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: step.title ? '8px' : '6px' }}>
-                        <span
-                          style={{
-                            background: '#8da4bf',
-                            color: '#fff',
-                            borderRadius: '999px',
-                            padding: '3px 10px',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                          }}
-                        >
-                          Step {index + 1}
-                        </span>
-                        {step.title ? (
-                          <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text, #18181c)' }}>
-                            {step.title}
-                          </h4>
-                        ) : null}
-                      </div>
+                <div className="steps" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
+                  {selectedEntry.steps.map((rawStep, index) => {
+                    const step = parseStep(rawStep)
+                    return (
                       <div
+                        key={index}
                         style={{
-                          whiteSpace: 'pre-wrap',
-                          lineHeight: 1.6,
-                          fontSize: '0.98rem',
-                          color: '#2a2a32',
-                          marginTop: '6px',
+                          padding: '16px 20px',
+                          borderRadius: '12px',
+                          background: 'rgba(255, 255, 255, 0.65)',
+                          border: '1px solid rgba(0, 0, 0, 0.08)',
+                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
                         }}
                       >
-                        {step.text}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: step.title ? '8px' : '6px' }}>
+                          <span
+                            style={{
+                              background: '#8da4bf',
+                              color: '#fff',
+                              borderRadius: '999px',
+                              padding: '3px 10px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            Step {index + 1}
+                          </span>
+                          {step.title ? (
+                            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text, #18181c)' }}>
+                              {step.title}
+                            </h4>
+                          ) : null}
+                        </div>
+                        <div
+                          style={{
+                            whiteSpace: 'pre-wrap',
+                            lineHeight: 1.6,
+                            fontSize: '0.98rem',
+                            color: '#2a2a32',
+                            marginTop: '6px',
+                          }}
+                        >
+                          {step.text}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           /* MAIN TOPICS LIST VIEW */
@@ -407,135 +613,39 @@ const HelpbookPage = () => {
               </button>
             </div>
 
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search help titles..."
+            />
+
             <TagBar activeTag={activeTag} tags={allTags} onSelectTag={setActiveTag} />
 
-            {showForm ? (
-              <div className="card form-grid">
-                <label className="field">
-                  <span>What's bugging you? (Topic Title)</span>
-                  <input value={title} onChange={(event) => setTitle(event.target.value)} />
-                </label>
-
-                <div className="field">
-                  <span>What domain does it fall into?</span>
-                  <TagSelectDropdown
-                    selectedTag={selectedTag}
-                    allTags={allTags}
-                    onSelectTag={setSelectedTag}
-                  />
-                </div>
-
-                <div className="field">
-                  <span>Add a Step</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <input
-                      type="text"
-                      placeholder="Step Title (optional)"
-                      value={stepTitleInput}
-                      onChange={(event) => setStepTitleInput(event.target.value)}
-                    />
-                    <textarea
-                      rows={3}
-                      placeholder="Step Details (supports multiline text & spacing)..."
-                      value={stepTextInput}
-                      onChange={(event) => setStepTextInput(event.target.value)}
-                    />
-                    <button type="button" className="btn ghost" style={{ alignSelf: 'flex-start' }} onClick={handleAddStep}>
-                      + Add Step
-                    </button>
-                  </div>
-                </div>
-
-                <div className="stack">
-                  {steps.length === 0 ? <p className="muted">No steps added yet.</p> : null}
-                  {steps.map((step, index) => (
-                    <div className="assigned-item" key={index} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-                      {editingStepIndex === index ? (
-                        <div className="field" style={{ gap: '8px' }}>
-                          <span>
-                            <strong>Step {index + 1}:</strong>
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="Step Title (optional)"
-                            value={editingStepTitleValue}
-                            onChange={(event) => setEditingStepTitleValue(event.target.value)}
-                          />
-                          <textarea
-                            rows={3}
-                            placeholder="Step details..."
-                            value={editingStepTextValue}
-                            onChange={(event) => setEditingStepTextValue(event.target.value)}
-                          />
-                        </div>
-                      ) : (
-                        <div>
-                          <p className="muted" style={{ margin: 0 }}>
-                            <strong>Step {index + 1}: </strong>
-                            {step.title ? <strong style={{ color: 'var(--text)' }}>[{step.title}] </strong> : null}
-                            <span style={{ whiteSpace: 'pre-wrap' }}>{step.text}</span>
-                          </p>
-                        </div>
-                      )}
-                      <div className="card-actions" style={{ marginTop: '8px' }}>
-                        {editingStepIndex === index ? (
-                          <>
-                            <button className="btn ghost" type="button" onClick={handleSaveStepEdit}>
-                              Save
-                            </button>
-                            <button className="btn ghost" type="button" onClick={handleCancelStepEdit}>
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <button className="btn ghost" type="button" onClick={() => handleEditStep(index)}>
-                            Edit
-                          </button>
-                        )}
-                        <button className="btn ghost" type="button" onClick={() => handleRemoveStep(index)}>
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {error ? <p className="error">{error}</p> : null}
-
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    className="btn ghost"
-                    data-global-close
-                    onClick={() => {
-                      resetForm()
-                      setShowForm(false)
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button type="button" className="btn primary" onClick={handleSubmit}>
-                    {editingId ? 'Save Changes' : 'Save Entry'}
-                  </button>
-                </div>
-              </div>
-            ) : null}
+            {showForm && !selectedEntryId ? renderForm() : null}
 
             {isLoading ? <div className="card">Loading helpbook...</div> : null}
 
-            {!isLoading && visibleEntries.length === 0 ? (
+            {!isLoading && searchedEntries.length === 0 ? (
               <div className="card empty-state">
-                <h3>{entries.length === 0 ? 'No Helpbook entries yet' : 'No entries for this tag'}</h3>
+                <h3>
+                  {entries.length === 0
+                    ? 'No Helpbook entries yet'
+                    : searchQuery.trim()
+                    ? `No entries found for "${searchQuery}"`
+                    : 'No entries for this tag'}
+                </h3>
                 <p>
                   {entries.length === 0
                     ? 'Add your first solution using the button above.'
+                    : searchQuery.trim()
+                    ? 'Try adjusting your search query or tag filter.'
                     : 'Choose another tag or select all to see your saved entries.'}
                 </p>
               </div>
             ) : null}
 
             <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-              {visibleEntries.map((entry) => (
+              {searchedEntries.map((entry) => (
                 <div
                   className="card link-card"
                   key={entry.id}
@@ -568,24 +678,6 @@ const HelpbookPage = () => {
                     <p className="muted" style={{ fontSize: '0.85rem', margin: 0 }}>
                       {entry.steps.length} {entry.steps.length === 1 ? 'step' : 'steps'}
                     </p>
-                  </div>
-                  <div className="card-actions" style={{ marginTop: '14px', gap: '8px' }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="btn ghost"
-                      type="button"
-                      style={{ padding: '4px 10px', fontSize: '0.78rem', height: 'auto', minHeight: 'unset' }}
-                      onClick={() => handleEdit(entry)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn danger"
-                      type="button"
-                      style={{ padding: '4px 10px', fontSize: '0.78rem', height: 'auto', minHeight: 'unset' }}
-                      onClick={() => handleDelete(entry.id)}
-                    >
-                      Delete
-                    </button>
                   </div>
                 </div>
               ))}

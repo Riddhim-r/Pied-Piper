@@ -52,3 +52,23 @@ export const deleteEncyclopediaLink = async (linkId: string) => {
 export const openEncyclopediaLink = async (url: string) => {
   return desktopApi.openEncyclopediaLink(url)
 }
+
+export const getEncyclopediaPdfs = async (topicId: string) => {
+  return desktopApi.listEncyclopediaPdfs(topicId)
+}
+
+export const uploadEncyclopediaPdf = async (topicId: string) => {
+  return desktopApi.uploadEncyclopediaPdf(topicId)
+}
+
+export const deleteEncyclopediaPdf = async (pdfId: string) => {
+  return desktopApi.deleteEncyclopediaPdf(pdfId)
+}
+
+export const readEncyclopediaPdfData = async (filePath: string) => {
+  return desktopApi.readEncyclopediaPdfData(filePath)
+}
+
+export const openEncyclopediaPdfExternal = async (filePath: string) => {
+  return desktopApi.openEncyclopediaPdfExternal(filePath)
+}

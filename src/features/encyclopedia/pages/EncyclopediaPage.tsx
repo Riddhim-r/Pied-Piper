@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import PageHeader from '../../../components/PageHeader'
 import TopNav from '../../../components/TopNav'
+import { SearchBar } from '../../../components/SearchBar'
 import {
   createEncyclopediaTopic,
   deleteEncyclopediaTopic,
@@ -22,9 +23,18 @@ const EncyclopediaPage = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
+
+  const searchedTopics = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase()
+    if (!query) return topics
+    return topics.filter((topic) =>
+      topic.title.toLowerCase().includes(query)
+    )
+  }, [topics, searchQuery])
 
   const loadTopics = async () => {
     setIsLoading(true)
@@ -142,7 +152,7 @@ const EncyclopediaPage = () => {
 
         <PageHeader
           title="Encyclopedia"
-          description="Create topics and keep useful links organized inside them."
+          description="Create topics and keep useful links & PDF documents organized inside them."
           actionSlot={
             <button
               className="btn primary"
@@ -153,6 +163,12 @@ const EncyclopediaPage = () => {
               New Topic
             </button>
           }
+        />
+
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search topic titles..."
         />
 
         {showForm ? (
@@ -193,34 +209,54 @@ const EncyclopediaPage = () => {
         {!showForm && error ? <p className="error">{error}</p> : null}
         {isLoading ? <div className="card">Loading encyclopedia...</div> : null}
 
-        {!isLoading && topics.length === 0 ? (
+        {!isLoading && searchedTopics.length === 0 ? (
           <div className="card empty-state">
-            <h3>No topics yet</h3>
-            <p>Create the first topic for your link collection.</p>
+            <h3>
+              {topics.length === 0
+                ? 'No topics yet'
+                : searchQuery.trim()
+                ? `No topics found for "${searchQuery}"`
+                : 'No topics found'}
+            </h3>
+            <p>
+              {topics.length === 0
+                ? 'Create the first topic for your link and PDF collection.'
+                : searchQuery.trim()
+                ? 'Try adjusting your search query.'
+                : 'No topics match your query.'}
+            </p>
           </div>
         ) : null}
 
-        {!isLoading && topics.length > 0 ? (
+        {!isLoading && searchedTopics.length > 0 ? (
           <div className="stack">
-            {topics.map((topic) => (
+            {searchedTopics.map((topic) => (
               <div className="card" key={topic.id}>
                 <div className="card-head">
                   <div>
                     <h3>{topic.title}</h3>
                     <p>{topic.description || 'No description yet.'}</p>
                   </div>
-                  <span className="pill">
-                    Updated {new Date(topic.updatedAt).toLocaleDateString(undefined, {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </span>
+                  <div className="pill-row">
+                    <span className="pill">
+                      {topic.linkCount ?? 0} {(topic.linkCount ?? 0) === 1 ? 'link' : 'links'}
+                    </span>
+                    <span className="pill">
+                      {topic.pdfCount ?? 0} {(topic.pdfCount ?? 0) === 1 ? 'PDF' : 'PDFs'}
+                    </span>
+                    <span className="pill">
+                      Updated {new Date(topic.updatedAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="card-actions">
                   <Link className="btn primary" to={`/encyclopedia/${topic.id}`}>
-                    View Links
+                    View Content
                   </Link>
                   <button className="btn ghost" type="button" onClick={() => openEditForm(topic)}>
                     Edit

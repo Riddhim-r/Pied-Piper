@@ -2,12 +2,15 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron')
 const {
+  addPdf,
   createLink,
   createTopic,
   deleteLink,
+  deletePdf,
   deleteTopic,
   getTopic,
   listLinks,
+  listPdfs,
   listTopics,
   updateLink,
   updateTopic,
@@ -106,6 +109,76 @@ const registerIpcHandlers = () => {
     }
 
     await shell.openExternal(parsedUrl.toString())
+    return { ok: true }
+  })
+
+  ipcMain.handle('encyclopedia:list-pdfs', async (_event, topicId) => {
+    return listPdfs(db, topicId)
+  })
+
+  ipcMain.handle('encyclopedia:upload-pdf', async (event, topicId) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    const result = await dialog.showOpenDialog(window, {
+      title: 'Upload PDF to Encyclopedia Topic',
+      properties: ['openFile'],
+      filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+    })
+
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+      return { canceled: true }
+    }
+
+    const sourcePath = result.filePaths[0]
+    const fileName = path.basename(sourcePath)
+    const stat = fs.statSync(sourcePath)
+
+    const targetDir = path.join(app.getPath('userData'), 'encyclopedia-pdfs', topicId)
+    fs.mkdirSync(targetDir, { recursive: true })
+
+    const safeUniqueName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const targetFilePath = path.join(targetDir, safeUniqueName)
+
+    fs.copyFileSync(sourcePath, targetFilePath)
+
+    const created = addPdf(db, topicId, {
+      fileName,
+      filePath: targetFilePath,
+      fileSize: stat.size,
+    })
+
+    return { canceled: false, id: created.id }
+  })
+
+  ipcMain.handle('encyclopedia:delete-pdf', async (_event, id) => {
+    const res = deletePdf(db, id)
+    if (res.filePath) {
+      try {
+        if (fs.existsSync(res.filePath)) {
+          fs.unlinkSync(res.filePath)
+        }
+      } catch (err) {
+        console.error('Failed to remove PDF file from disk:', err)
+      }
+    }
+    return { ok: true }
+  })
+
+  ipcMain.handle('encyclopedia:read-pdf-data', async (_event, filePath) => {
+    const resolvedPath = path.resolve(filePath)
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error('PDF file not found on disk.')
+    }
+    const buffer = fs.readFileSync(resolvedPath)
+    const base64Data = buffer.toString('base64')
+    return `data:application/pdf;base64,${base64Data}`
+  })
+
+  ipcMain.handle('encyclopedia:open-pdf-external', async (_event, filePath) => {
+    const resolvedPath = path.resolve(filePath)
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error('PDF file not found on disk.')
+    }
+    await shell.openPath(resolvedPath)
     return { ok: true }
   })
 

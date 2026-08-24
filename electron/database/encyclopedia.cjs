@@ -6,6 +6,8 @@ const mapTopicRow = (row) => ({
   description: row.description,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
+  linkCount: Number(row.link_count ?? 0),
+  pdfCount: Number(row.pdf_count ?? 0),
 })
 
 const mapLinkRow = (row) => ({
@@ -16,6 +18,15 @@ const mapLinkRow = (row) => ({
   sortOrder: row.sort_order,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
+})
+
+const mapPdfRow = (row) => ({
+  id: row.id,
+  topicId: row.topic_id,
+  fileName: row.file_name,
+  filePath: row.file_path,
+  fileSize: row.file_size,
+  createdAt: row.created_at,
 })
 
 const ensureTopicTitle = (title) => {
@@ -58,9 +69,12 @@ const getTopic = (database, id) => {
   const row = database
     .prepare(
       `
-      SELECT id, title, description, created_at, updated_at
-      FROM encyclopedia_topics
-      WHERE id = ? AND deleted_at IS NULL
+      SELECT 
+        t.id, t.title, t.description, t.created_at, t.updated_at,
+        (SELECT COUNT(*) FROM encyclopedia_topic_links l WHERE l.topic_id = t.id) AS link_count,
+        (SELECT COUNT(*) FROM encyclopedia_topic_pdfs p WHERE p.topic_id = t.id) AS pdf_count
+      FROM encyclopedia_topics t
+      WHERE t.id = ? AND t.deleted_at IS NULL
     `,
     )
     .get(id)
@@ -72,10 +86,13 @@ const listTopics = (database) => {
   const rows = database
     .prepare(
       `
-      SELECT id, title, description, created_at, updated_at
-      FROM encyclopedia_topics
-      WHERE deleted_at IS NULL
-      ORDER BY datetime(updated_at) DESC
+      SELECT 
+        t.id, t.title, t.description, t.created_at, t.updated_at,
+        (SELECT COUNT(*) FROM encyclopedia_topic_links l WHERE l.topic_id = t.id) AS link_count,
+        (SELECT COUNT(*) FROM encyclopedia_topic_pdfs p WHERE p.topic_id = t.id) AS pdf_count
+      FROM encyclopedia_topics t
+      WHERE t.deleted_at IS NULL
+      ORDER BY datetime(t.updated_at) DESC
     `,
     )
     .all()
@@ -104,7 +121,7 @@ const updateTopic = (database, id, payload) => {
   const title = ensureTopicTitle(payload.title)
   const description = String(payload.description ?? '').trim()
 
-  database
+  const result = database
     .prepare(
       `
       UPDATE encyclopedia_topics
@@ -113,6 +130,10 @@ const updateTopic = (database, id, payload) => {
     `,
     )
     .run(title, description, id)
+
+  if (result.changes === 0) {
+    throw new Error('Encyclopedia topic not found.')
+  }
 
   return { ok: true }
 }
@@ -126,15 +147,11 @@ const deleteTopic = (database, id) => {
     itemType: 'topic',
     originalId: id,
     touchUpdatedAt: true,
-    notFoundMessage: null,
+    notFoundMessage: 'Encyclopedia topic not found.',
   })
 }
 
 const listLinks = (database, topicId) => {
-  if (!getTopic(database, topicId)) {
-    return []
-  }
-
   const rows = database
     .prepare(
       `
@@ -150,22 +167,26 @@ const listLinks = (database, topicId) => {
 }
 
 const createLink = (database, topicId, payload) => {
-  if (!getTopic(database, topicId)) {
+  const topic = getTopic(database, topicId)
+  if (!topic) {
     throw new Error('Encyclopedia topic not found.')
   }
 
-  const id = randomUUID()
   const label = ensureLinkValue(payload.label, 'Link name')
   const url = ensureUrl(payload.url)
-  const nextOrder = database
+
+  const maxRow = database
     .prepare(
       `
-      SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order
+      SELECT COALESCE(MAX(sort_order), -1) AS max_sort
       FROM encyclopedia_topic_links
       WHERE topic_id = ?
     `,
     )
-    .get(topicId).next_order
+    .get(topicId)
+
+  const id = randomUUID()
+  const sortOrder = (maxRow?.max_sort ?? -1) + 1
 
   database
     .prepare(
@@ -174,7 +195,7 @@ const createLink = (database, topicId, payload) => {
       VALUES (?, ?, ?, ?, ?)
     `,
     )
-    .run(id, topicId, label, url, nextOrder)
+    .run(id, topicId, label, url, sortOrder)
 
   return { id }
 }
@@ -207,13 +228,62 @@ const deleteLink = (database, id) => {
   return { ok: true }
 }
 
+const listPdfs = (database, topicId) => {
+  const rows = database
+    .prepare(
+      `
+      SELECT id, topic_id, file_name, file_path, file_size, created_at
+      FROM encyclopedia_topic_pdfs
+      WHERE topic_id = ?
+      ORDER BY datetime(created_at) DESC
+    `,
+    )
+    .all(topicId)
+
+  return rows.map(mapPdfRow)
+}
+
+const addPdf = (database, topicId, fileDetails) => {
+  const id = randomUUID()
+  const fileName = String(fileDetails.fileName ?? '').trim() || 'Document.pdf'
+  const filePath = String(fileDetails.filePath ?? '').trim()
+  const fileSize = Number(fileDetails.fileSize ?? 0)
+
+  if (!filePath) {
+    throw new Error('File path is required.')
+  }
+
+  database
+    .prepare(
+      `
+      INSERT INTO encyclopedia_topic_pdfs (id, topic_id, file_name, file_path, file_size)
+      VALUES (?, ?, ?, ?, ?)
+    `,
+    )
+    .run(id, topicId, fileName, filePath, fileSize)
+
+  return { id }
+}
+
+const deletePdf = (database, id) => {
+  const row = database
+    .prepare(`SELECT file_path FROM encyclopedia_topic_pdfs WHERE id = ?`)
+    .get(id)
+
+  database.prepare(`DELETE FROM encyclopedia_topic_pdfs WHERE id = ?`).run(id)
+  return row ? { ok: true, filePath: row.file_path } : { ok: true }
+}
+
 module.exports = {
+  addPdf,
   createLink,
   createTopic,
   deleteLink,
+  deletePdf,
   deleteTopic,
   getTopic,
   listLinks,
+  listPdfs,
   listTopics,
   updateLink,
   updateTopic,

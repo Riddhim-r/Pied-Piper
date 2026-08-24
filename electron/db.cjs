@@ -71,6 +71,19 @@ const runMigrations = (database) => {
     CREATE INDEX IF NOT EXISTS idx_encyclopedia_links_topic
       ON encyclopedia_topic_links(topic_id, sort_order);
 
+    CREATE TABLE IF NOT EXISTS encyclopedia_topic_pdfs (
+      id TEXT PRIMARY KEY,
+      topic_id TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (topic_id) REFERENCES encyclopedia_topics(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_encyclopedia_pdfs_topic
+      ON encyclopedia_topic_pdfs(topic_id);
+
     CREATE TABLE IF NOT EXISTS recycle_bin_items (
       id TEXT PRIMARY KEY,
       category TEXT NOT NULL,

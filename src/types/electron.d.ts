@@ -6,6 +6,16 @@ export interface EncyclopediaTopicType {
   description: string
   createdAt: string
   updatedAt: string
+  linkCount?: number
+}
+
+export interface EncyclopediaPdfType {
+  id: string
+  topicId: string
+  fileName: string
+  filePath: string
+  fileSize: number
+  createdAt: string
 }
 
 export interface EncyclopediaLinkType {
@@ -103,6 +113,11 @@ declare global {
       updateEncyclopediaLink: (id: string, payload: { label: string; url: string }) => Promise<{ ok: true }>
       deleteEncyclopediaLink: (id: string) => Promise<{ ok: true }>
       openEncyclopediaLink: (url: string) => Promise<{ ok: true }>
+      uploadEncyclopediaPdf: (topicId: string) => Promise<{ canceled: boolean; id?: string }>
+      listEncyclopediaPdfs: (topicId: string) => Promise<EncyclopediaPdfType[]>
+      deleteEncyclopediaPdf: (id: string) => Promise<{ ok: true }>
+      readEncyclopediaPdfData: (filePath: string) => Promise<string>
+      openEncyclopediaPdfExternal: (filePath: string) => Promise<{ ok: true }>
       getTodoState: () => Promise<TodoStateType>
       createTodoList: (payload: { name: string }) => Promise<{ ok: true }>
       addTodoTask: (payload: { title: string }) => Promise<{ id: string }>

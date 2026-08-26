@@ -17,7 +17,7 @@
   --sidebar-line: var(--border);
   --sidebar-card: var(--bg-2);
   --sidebar-card-active: var(--accent);
-  --notebook-font: 'Patrick Hand', 'Kalam', cursive, sans-serif;
+  --notebook-font: 'Life Savers', 'Baloo 2', 'Kalam', cursive, sans-serif;
   --serif: var(--notebook-font);
   --mono: 'JetBrains Mono', monospace;
 }

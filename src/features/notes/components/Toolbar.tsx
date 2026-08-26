@@ -60,6 +60,21 @@ const TEXT_SIZES = [
   { label: "32 px", value: "32px" }
 ];
 
+const FONT_FAMILIES = [
+  { label: "Default Font", value: null },
+  { label: "Shantell Sans (Hand-Drawn)", value: "'Shantell Sans', cursive, sans-serif" },
+  { label: "Balsamiq Sans (Sketchbook)", value: "'Balsamiq Sans', cursive, sans-serif" },
+  { label: "Grandstander (Playful)", value: "'Grandstander', cursive, sans-serif" },
+  { label: "Space Grotesk (App Retro UI)", value: "'Space Grotesk', sans-serif" },
+  { label: "Plus Jakarta Sans (Modern)", value: "'Plus Jakarta Sans', sans-serif" },
+  { label: "Nunito (Soft Rounded)", value: "'Nunito', sans-serif" },
+  { label: "Lora (Classic Book)", value: "'Lora', serif" },
+  { label: "Sniglet (Playful)", value: "'Sniglet', sans-serif" },
+  { label: "Patrick Hand (Handwriting)", value: "'Patrick Hand', cursive, sans-serif" },
+  { label: "Life Savers (Whimsical)", value: "'Life Savers', cursive, sans-serif" },
+  { label: "JetBrains Mono (Code)", value: "'JetBrains Mono', monospace" }
+];
+
 const isActive = (editor: Editor | null, name: string, attrs?: Record<string, unknown>) =>
   editor?.isActive(name, attrs) ? "is-active" : "";
 
@@ -121,15 +136,19 @@ export function Toolbar({
 }: ToolbarProps) {
   const [activeSection, setActiveSection] = useState("text");
   const [showTextSizeMenu, setShowTextSizeMenu] = useState(false);
+  const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
 
   useEffect(() => {
-    if (!showTextSizeMenu) return;
-    const closeTextSizeMenu = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowTextSizeMenu(false);
+    if (!showTextSizeMenu && !showFontFamilyMenu) return;
+    const closeMenus = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowTextSizeMenu(false);
+        setShowFontFamilyMenu(false);
+      }
     };
-    window.addEventListener("keydown", closeTextSizeMenu);
-    return () => window.removeEventListener("keydown", closeTextSizeMenu);
-  }, [showTextSizeMenu]);
+    window.addEventListener("keydown", closeMenus);
+    return () => window.removeEventListener("keydown", closeMenus);
+  }, [showTextSizeMenu, showFontFamilyMenu]);
 
   if (!editor) {
     return null;
@@ -229,6 +248,44 @@ export function Toolbar({
                   }}
                 >
                   {size.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>,
+        <div className="toolbar-font-family" key="font-family">
+          <ToolbarAction
+            active={showFontFamilyMenu}
+            onClick={() => setShowFontFamilyMenu((current) => !current)}
+            label="Font family"
+          >
+            <span className="toolbar-action__stack">
+              <Type size={16} strokeWidth={2.1} />
+              <span className="toolbar-action__badge">Aa</span>
+            </span>
+          </ToolbarAction>
+          {showFontFamilyMenu ? (
+            <div className="toolbar-font-family__menu">
+              {FONT_FAMILIES.map((font) => (
+                <button
+                  type="button"
+                  key={font.label}
+                  style={{ fontFamily: font.value || "inherit" }}
+                  className={
+                    (editor.getAttributes("textStyle").fontFamily ?? null) === font.value
+                      ? "is-active"
+                      : ""
+                  }
+                  onClick={() => {
+                    if (font.value) {
+                      editor.chain().focus().setFontFamily(font.value).run();
+                    } else {
+                      editor.chain().focus().unsetFontFamily().run();
+                    }
+                    setShowFontFamilyMenu(false);
+                  }}
+                >
+                  {font.label}
                 </button>
               ))}
             </div>

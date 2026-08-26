@@ -885,6 +885,46 @@
   color: #fff;
 }
 
+.toolbar-font-family {
+  position: relative;
+}
+
+.toolbar-font-family__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 80;
+  width: 240px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  border: 3px solid var(--ink);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.toolbar-font-family__menu button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid var(--ink);
+  background: var(--bg-2);
+  color: var(--ink);
+  text-align: left;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-font-family__menu button.is-active,
+.toolbar-font-family__menu button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;

@@ -20,6 +20,7 @@ import StarterKit from "@tiptap/starter-kit";
 import type { Editor } from "@tiptap/react";
 import { CodeBlockWithTools } from "../editor/CodeBlockWithTools";
 import { FontSize } from "../editor/FontSize";
+import { FontFamily } from "../editor/FontFamily";
 import {
   applyOrderedListStyle,
   OrderedListStyleExtension
@@ -312,6 +313,7 @@ export function EditorPane({
       Underline,
       TextStyle,
       FontSize,
+      FontFamily,
       Color,
       Highlight.configure({ multicolor: true }),
       Subscript,

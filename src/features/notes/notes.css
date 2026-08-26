@@ -17,8 +17,9 @@
   --sidebar-line: var(--border);
   --sidebar-card: var(--bg-2);
   --sidebar-card-active: var(--accent);
-  --serif: Georgia, serif;
-  --mono: Consolas, "Courier New", monospace;
+  --notebook-font: 'Patrick Hand', 'Kalam', cursive, sans-serif;
+  --serif: var(--notebook-font);
+  --mono: 'JetBrains Mono', monospace;
 }
 
 .app-shell {
@@ -1138,8 +1139,8 @@
 .editor-surface h3 {
   line-height: 1.12;
   color: #4d6079;
-  font-family: "Segoe UI Variable", "Segoe UI", "Aptos", sans-serif;
-  letter-spacing: -0.03em;
+  font-family: var(--notebook-font);
+  letter-spacing: -0.02em;
 }
 
 .editor-surface h1 {
@@ -1363,10 +1364,12 @@
 .code-block-shell pre code {
   display: block;
   min-width: max-content;
+  font-family: var(--mono);
 }
 
 .editor-surface code {
   white-space: break-spaces;
+  font-family: var(--mono);
 }
 
 .slash-menu {

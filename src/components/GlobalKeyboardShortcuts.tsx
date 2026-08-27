@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { invertInputSelectionCase, invertWindowSelectionCase, shouldCapitalizeSentence } from '../utils/textCase'
 
 const destinations = [
   { label: 'Dashboard', path: '/dashboard', keywords: 'home overview' },
@@ -53,8 +54,74 @@ const GlobalKeyboardShortcuts = () => {
   }, [])
 
   useEffect(() => {
+    const handleBeforeInput = (event: InputEvent) => {
+      const target = event.target
+      if (
+        !(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) ||
+        target.type === 'password' ||
+        target.type === 'email' ||
+        target.type === 'number' ||
+        target.type === 'url'
+      ) {
+        return
+      }
+
+      if (
+        event.inputType === 'insertText' &&
+        event.data &&
+        event.data.length === 1 &&
+        /[a-z]/.test(event.data)
+      ) {
+        const start = target.selectionStart
+        const end = target.selectionEnd
+        if (start !== null && end !== null && start === end) {
+          const precedingText = target.value.substring(0, start)
+          if (shouldCapitalizeSentence(precedingText, start)) {
+            event.preventDefault()
+            const upper = event.data.toUpperCase()
+            try {
+              document.execCommand('insertText', false, upper)
+            } catch {
+              target.setRangeText(upper, start, end, 'end')
+              target.dispatchEvent(new Event('input', { bubbles: true }))
+            }
+          }
+        }
+      }
+    }
+
+    window.addEventListener('beforeinput', handleBeforeInput as EventListener)
+    return () => window.removeEventListener('beforeinput', handleBeforeInput as EventListener)
+  }, [])
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase()
+
+      const isAltShiftU = event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey && key === 'u'
+      const isShiftF3 = event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && event.key === 'F3'
+
+      if (isAltShiftU || isShiftF3) {
+        const activeEl = document.activeElement
+
+        // If focus is inside TipTap editor, let TipTap's own extension handle it natively
+        if (activeEl?.closest('.ProseMirror')) {
+          return
+        }
+
+        if (
+          activeEl &&
+          (activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement)
+        ) {
+          if (invertInputSelectionCase(activeEl)) {
+            event.preventDefault()
+            return
+          }
+        } else if (invertWindowSelectionCase()) {
+          event.preventDefault()
+          return
+        }
+      }
 
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
         if (key === '0') {

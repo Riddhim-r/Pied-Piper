@@ -26,6 +26,8 @@ import {
   OrderedListStyleExtension
 } from "../editor/OrderedListStyle";
 import { ResizableImage } from "../editor/ResizableImage";
+import { ToggleCaseExtension } from "../editor/CaseToggle";
+import { AutoCapitalizeExtension } from "../editor/AutoCapitalize";
 import type { EditorDraft, NotebookRecord, OutlineHeading } from "../types";
 import { Toolbar } from "./Toolbar";
 import { FindInNotebookBar } from "./FindInNotebookBar";
@@ -309,6 +311,8 @@ export function EditorPane({
         orderedList: false
       }),
       OrderedListStyleExtension,
+      ToggleCaseExtension,
+      AutoCapitalizeExtension,
       CodeBlockWithTools,
       Underline,
       TextStyle,

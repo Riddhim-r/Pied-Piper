@@ -21,16 +21,24 @@ const themeFeatures: Array<{ id: ThemeFeatureId; label: string }> = [
   { id: 'settings', label: 'Settings' },
 ]
 
-const shortcuts = [
-  ['Alt + Left Arrow', 'Move to the previous page'],
-  ['Alt + Right Arrow', 'Move to the next page'],
-  ['Alt + Home', 'Open the Dashboard'],
-  ['Ctrl + K', 'Search and open an application page'],
-  ['Ctrl + ,', 'Open Settings'],
-  ['Ctrl + N', 'Create a new item in the current feature'],
-  ['Ctrl + Shift + T', 'Open Todo'],
-  ['Ctrl + Shift + Delete', 'Open the Recycle Bin'],
-  ['Escape', 'Close active search, menu, dialog, or empty creation form (preserves content if non-empty)'],
+const shortcuts: Array<{ keys: string[]; description: string }> = [
+  { keys: ['Alt + Left Arrow'], description: 'Move to the previous page' },
+  { keys: ['Alt + Right Arrow'], description: 'Move to the next page' },
+  { keys: ['Alt + Home'], description: 'Open the Dashboard' },
+  {
+    keys: ['Alt + Shift + U', 'or', 'Shift + F3'],
+    description: 'Toggle text case (caps to regular & vice versa) for selected text',
+  },
+  { keys: ['Ctrl + K'], description: 'Search and open an application page' },
+  { keys: ['Ctrl + ,'], description: 'Open Settings' },
+  { keys: ['Ctrl + N'], description: 'Create a new item in the current feature' },
+  { keys: ['Ctrl + Shift + T'], description: 'Open Todo' },
+  { keys: ['Ctrl + Shift + Delete'], description: 'Open the Recycle Bin' },
+  {
+    keys: ['Escape'],
+    description:
+      'Close active search, menu, dialog, or empty creation form (preserves content if non-empty)',
+  },
 ]
 
 const formatBytes = (bytes: number) => {
@@ -341,9 +349,19 @@ const SettingsPage = () => {
             <p className="muted">Reference for the shortcuts currently available.</p>
           </div>
           <div className="settings-shortcut-grid">
-            {shortcuts.map(([keys, description]) => (
-              <div className="settings-shortcut" key={keys}>
-                <kbd>{keys}</kbd>
+            {shortcuts.map(({ keys, description }, index) => (
+              <div className="settings-shortcut" key={index}>
+                <div className="settings-shortcut-keys">
+                  {keys.map((k, i) =>
+                    k === 'or' ? (
+                      <span key={i} className="shortcut-or">
+                        or
+                      </span>
+                    ) : (
+                      <kbd key={i}>{k}</kbd>
+                    ),
+                  )}
+                </div>
                 <span>{description}</span>
               </div>
             ))}

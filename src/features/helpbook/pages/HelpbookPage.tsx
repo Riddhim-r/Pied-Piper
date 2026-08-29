@@ -5,6 +5,7 @@ import TopNav from '../../../components/TopNav'
 import { TagBar } from '../../../components/TagBar'
 import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
 import { SearchBar } from '../../../components/SearchBar'
+import AutoResizingTextarea from '../../../components/AutoResizingTextarea'
 import { useTagFilter } from '../../../hooks/useTagFilter'
 import {
   createHelpbookEntry,
@@ -346,7 +347,7 @@ const HelpbookPage = () => {
             value={stepTitleInput}
             onChange={(event) => setStepTitleInput(event.target.value)}
           />
-          <textarea
+          <AutoResizingTextarea
             rows={3}
             placeholder="Explain what to do..."
             value={stepTextInput}
@@ -377,7 +378,7 @@ const HelpbookPage = () => {
                       onChange={(e) => setEditingStepTitleValue(e.target.value)}
                       placeholder="Step Title (optional)"
                     />
-                    <textarea
+                    <AutoResizingTextarea
                       rows={2}
                       value={editingStepTextValue}
                       onChange={(e) => setEditingStepTextValue(e.target.value)}
@@ -398,7 +399,7 @@ const HelpbookPage = () => {
                       {step.title ? (
                         <h5 style={{ margin: '0 0 4px 0', fontSize: '0.95rem' }}>{step.title}</h5>
                       ) : null}
-                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569' }}>{step.text}</p>
+                      <p style={{ margin: 0, fontSize: '0.9rem', color: '#475569', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{step.text}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '4px' }}>
                       <button

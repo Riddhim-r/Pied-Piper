@@ -51,6 +51,10 @@ const {
   saveApplicationSettings,
 } = require('./database/settings.cjs')
 const {
+  listBragBookEntries,
+  createBragBookEntry,
+} = require('./database/bragbook.cjs')
+const {
   backupDatabaseTo,
   createAutomaticBackup,
   prepareImportDatabase,
@@ -69,6 +73,34 @@ const registerIpcHandlers = () => {
   } catch (backupError) {
     console.error('Failed to run periodic database backup:', backupError)
   }
+
+  ipcMain.handle('bragbook:list', async () => {
+    return listBragBookEntries(db)
+  })
+
+  ipcMain.handle('bragbook:create', async (_event, payload) => {
+    return createBragBookEntry(db, payload)
+  })
+
+  ipcMain.handle('bragbook:export-file', async (event, content) => {
+    const ownerWindow = BrowserWindow.fromWebContents(event.sender)
+    const downloadsFolder = app.getPath('downloads')
+    const result = await dialog.showSaveDialog(ownerWindow, {
+      title: 'Save Brag Book',
+      defaultPath: path.join(downloadsFolder, 'My brag book.md'),
+      filters: [
+        { name: 'Markdown Document', extensions: ['md'] },
+        { name: 'Text Document', extensions: ['txt'] },
+      ],
+    })
+
+    if (result.canceled || !result.filePath) {
+      return { canceled: true }
+    }
+
+    fs.writeFileSync(result.filePath, String(content || ''), 'utf8')
+    return { canceled: false, filePath: result.filePath }
+  })
 
   ipcMain.handle('encyclopedia:list-topics', async () => {
     return listTopics(db)

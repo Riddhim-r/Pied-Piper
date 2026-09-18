@@ -56,4 +56,7 @@ contextBridge.exposeInMainWorld('piedPiper', {
   exportDatabase: () => ipcRenderer.invoke('settings:export-database'),
   importDatabase: () => ipcRenderer.invoke('settings:import-database'),
   createDatabaseBackup: () => ipcRenderer.invoke('settings:create-backup'),
+  listBragBook: () => ipcRenderer.invoke('bragbook:list'),
+  createBragBookEntry: (payload) => ipcRenderer.invoke('bragbook:create', payload),
+  exportBragBookFile: (content) => ipcRenderer.invoke('bragbook:export-file', content),
 })

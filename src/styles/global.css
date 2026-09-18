@@ -936,3 +936,428 @@ a {
 .global-search-help {
   margin: 0;
 }
+
+/* ==========================================================================
+   BRAG BOOK FEATURE STYLES
+   ========================================================================== */
+
+.bragbook-page-container {
+  min-height: 100vh;
+}
+
+/* Back Button Bar */
+.bragbook-top-bar {
+  margin-bottom: 16px;
+}
+
+.bragbook-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 8px 14px;
+}
+
+/* Top Cover Banner */
+.bragbook-cover-banner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  border: 3px solid var(--ink);
+  background: linear-gradient(135deg, #ffd1dc 0%, #ffb6c1 50%, #ffa6c9 100%);
+  color: #2b1020;
+  margin-bottom: 24px;
+  box-shadow: 6px 6px 0 var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.bragbook-cover-image-frame {
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  background: #fff;
+  transform: rotate(-3deg);
+  overflow: hidden;
+}
+
+.bragbook-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bragbook-cover-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bragbook-tag-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #fff;
+  color: #d81b60;
+  border: 2px solid var(--ink);
+  padding: 4px 10px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.bragbook-title {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: #1a0510;
+  letter-spacing: -0.5px;
+  text-shadow: 1px 1px 0 #fff;
+}
+
+.bragbook-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #4a1525;
+}
+
+.bragbook-checklist-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.bragbook-check-item {
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid var(--ink);
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2b1020;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Toolbar Controls */
+.bragbook-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.bragbook-toolbar-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.bragbook-toolbar-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bragbook-add-btn {
+  background: #e91e63 !important;
+  color: #fff !important;
+  border-color: var(--ink) !important;
+}
+
+.bragbook-hype-btn {
+  background: #ffb74d !important;
+  color: #2e1c00 !important;
+  font-weight: 700;
+  border: 3px solid var(--ink) !important;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.bragbook-hype-btn:hover {
+  background: #ffa726 !important;
+  transform: translate(-1px, -1px);
+}
+
+.bragbook-export-btn {
+  background: #ab47bc !important;
+  color: #fff !important;
+  font-weight: 700;
+  border: 3px solid var(--ink) !important;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.bragbook-search-box {
+  min-width: 240px;
+}
+
+.bragbook-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 3px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* Add Form Card */
+.bragbook-form-card {
+  border: 3px solid var(--ink);
+  background: #fff0f5;
+  color: #2b1020;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.bragbook-form-header h3 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  color: #880e4f;
+}
+
+.bragbook-form-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(300px, 3fr);
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.bragbook-input,
+.bragbook-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 3px solid var(--ink);
+  background: #fff;
+  color: #1a0510;
+  font: inherit;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.bragbook-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Timeline & Entry Cards */
+.bragbook-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bragbook-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 2px dashed var(--ink);
+}
+
+.bragbook-ledger-badge {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.bragbook-count-badge {
+  background: var(--ink);
+  color: #fff;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.bragbook-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.bragbook-entry-card {
+  position: relative;
+  border: 3px solid var(--ink);
+  background: #fff;
+  padding: 20px;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bragbook-entry-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.bragbook-card-tape {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  width: 60px;
+  height: 20px;
+  background: rgba(255, 235, 150, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  transform: rotate(-2deg);
+}
+
+.bragbook-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.bragbook-card-date {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #c2185b;
+  background: #fce4ec;
+  padding: 2px 8px;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.bragbook-card-lock {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.bragbook-card-title {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.bragbook-card-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+/* Empty & Loading States */
+.bragbook-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  border: 3px dashed var(--ink);
+  background: rgba(255, 240, 245, 0.4);
+  margin-top: 12px;
+}
+
+.bragbook-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* Modal Backdrops */
+.bragbook-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.bragbook-modal-content {
+  background: #fff;
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  padding: 28px;
+  width: 100%;
+  max-width: 540px;
+  color: var(--ink);
+}
+
+.hype-modal {
+  background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+  text-align: center;
+}
+
+.hype-stars-icon-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #d81b60;
+  margin-bottom: 8px;
+}
+
+.bragbook-empty-icon-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #d81b60;
+  margin-bottom: 12px;
+}
+
+.hype-heading {
+  margin: 0 0 4px;
+  color: #ad1457;
+  font-size: 1.8rem;
+}
+
+.hype-date {
+  font-weight: 700;
+  color: #880e4f;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.hype-quote {
+  margin: 16px 0;
+  padding: 16px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #2b1020;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.hype-desc {
+  font-size: 0.95rem;
+  color: #4a1525;
+  margin-bottom: 16px;
+}
+
+.hype-footer-tag {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #d81b60;
+  margin-bottom: 20px;
+}
+
+.hype-actions,
+.export-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.bragbook-export-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid var(--ink);
+  font-family: monospace;
+  font-size: 0.88rem;
+  background: #f8f9fa;
+  color: #1a1a1a;
+  margin-top: 12px;
+}
+

@@ -144,8 +144,16 @@ const runMigrations = (database) => {
       deleted_at TEXT
     );
 
-    CREATE INDEX IF NOT EXISTS idx_notebooks_status_updated
-      ON notebooks(deleted_at, updated_at DESC);
+    CREATE TABLE IF NOT EXISTS brag_book_entries (
+      id TEXT PRIMARY KEY,
+      date TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_brag_book_date
+      ON brag_book_entries(date DESC, created_at DESC);
   `)
 
   const ensureColumn = (tableName, columnName, columnDefinition) => {

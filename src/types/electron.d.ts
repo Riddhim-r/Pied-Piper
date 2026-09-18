@@ -100,6 +100,14 @@ export interface ApplicationSettingsType {
   storageUsedBytes: number
 }
 
+export interface BragBookEntryType {
+  id: string
+  date: string
+  title: string
+  description: string
+  createdAt: string
+}
+
 declare global {
   interface Window {
     piedPiper?: {
@@ -153,6 +161,9 @@ declare global {
       exportDatabase: () => Promise<{ canceled: boolean; filePath?: string }>
       importDatabase: () => Promise<{ canceled: boolean; restarting?: boolean; safetyBackupPath?: string }>
       createDatabaseBackup: () => Promise<{ canceled: boolean; filePath?: string }>
+      listBragBook: () => Promise<BragBookEntryType[]>
+      createBragBookEntry: (payload: { date: string; title: string; description?: string }) => Promise<BragBookEntryType>
+      exportBragBookFile: (content: string) => Promise<{ canceled: boolean; filePath?: string }>
     }
   }
 }

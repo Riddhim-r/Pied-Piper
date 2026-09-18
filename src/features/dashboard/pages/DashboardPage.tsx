@@ -34,6 +34,10 @@ const DashboardPage = () => {
             <h3>Encyclopedia</h3>
             <p>Organize useful links inside topics.</p>
           </Link>
+          <Link to="/bragbook" className="card link-card">
+            <h3>Brag Book</h3>
+            <p>Record career wins & personal milestones.</p>
+          </Link>
           <Link to="/todo" className="card link-card">
             <h3>Todo</h3>
             <p>Maintain one focused task list.</p>

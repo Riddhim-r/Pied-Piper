@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import GlobalKeyboardShortcuts from '../components/GlobalKeyboardShortcuts'
 import { AiPromptsPage } from '../features/ai-prompts'
 import { DashboardPage } from '../features/dashboard'
+import { BragbookPage } from '../features/bragbook'
 import { EncyclopediaPage, EncyclopediaTopicPage } from '../features/encyclopedia'
 import { HelpbookPage } from '../features/helpbook'
 import { NotesPage } from '../features/notes'
@@ -37,6 +38,14 @@ const App = () => {
           element={
             <RequireLogin>
               <DashboardPage />
+            </RequireLogin>
+          }
+        />
+        <Route
+          path="/bragbook"
+          element={
+            <RequireLogin>
+              <BragbookPage />
             </RequireLogin>
           }
         />

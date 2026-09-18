@@ -155,4 +155,12 @@ export const desktopApi = {
   exportDatabase: () => ensureDesktopApi().exportDatabase(),
   importDatabase: () => ensureDesktopApi().importDatabase(),
   createDatabaseBackup: () => ensureDesktopApi().createDatabaseBackup(),
+
+  // Brag Book
+  listBragBook: () =>
+    ensureApiMethods(['listBragBook', 'createBragBookEntry', 'exportBragBookFile'], 'Brag Book').listBragBook(),
+  createBragBookEntry: (payload: { date: string; title: string; description?: string }) =>
+    ensureDesktopApi().createBragBookEntry(payload),
+  exportBragBookFile: (content: string) =>
+    ensureDesktopApi().exportBragBookFile(content),
 }

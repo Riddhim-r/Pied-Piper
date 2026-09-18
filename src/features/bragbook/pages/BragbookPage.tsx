@@ -6,7 +6,6 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import LogoutButton from '../../../components/LogoutButton'
 import TopNav from '../../../components/TopNav'
 import { desktopApi } from '../../../lib/desktopApi'
 import type { BragBookEntryType } from '../../../types/electron'
@@ -95,11 +94,7 @@ export const BragbookPage = () => {
 
   return (
     <div className="page bragbook-page-container">
-      <TopNav
-        title="Pied Piper"
-        subtitle="The Bread-winner's workspace"
-        rightSlot={<LogoutButton />}
-      />
+      <TopNav title="Pied Piper" subtitle="The Bread-winner's workspace" />
 
       <div className="content">
         {/* Top Aesthetic Cover Banner */}

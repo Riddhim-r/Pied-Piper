@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import PageHeader from '../../../components/PageHeader'
 import TopNav from '../../../components/TopNav'
 import { defaultSettings, useAppSettings } from '../context/SettingsContext'
@@ -168,15 +167,7 @@ const SettingsPage = () => {
 
   return (
     <div className="page">
-      <TopNav
-        title="Pied Piper"
-        subtitle="Application preferences"
-        rightSlot={
-          <Link className="btn ghost" to="/dashboard">
-            Back
-          </Link>
-        }
-      />
+      <TopNav title="Pied Piper" subtitle="Application preferences" />
 
       <main className="content">
         <PageHeader

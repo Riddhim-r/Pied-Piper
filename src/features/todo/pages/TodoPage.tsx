@@ -1,5 +1,4 @@
 import { type FormEvent, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import PageHeader from '../../../components/PageHeader'
 import TopNav from '../../../components/TopNav'
@@ -148,15 +147,7 @@ const TodoPage = () => {
 
   return (
     <div className="page">
-      <TopNav
-        title="Pied Piper"
-        subtitle="Todo"
-        rightSlot={
-          <Link className="btn ghost" to="/dashboard">
-            Back
-          </Link>
-        }
-      />
+      <TopNav title="Pied Piper" subtitle="Todo" />
 
       <div className="content">
         <ConfirmDialog

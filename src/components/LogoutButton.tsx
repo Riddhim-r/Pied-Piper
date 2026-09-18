@@ -1,18 +1,20 @@
-﻿import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { logout } from '../lib/sessionAuth'
 
 const LogoutButton = () => {
   const navigate = useNavigate()
   return (
     <button
-      className="btn ghost"
+      className="logout-button-img-btn"
       onClick={() => {
         logout()
         navigate('/')
       }}
       type="button"
+      aria-label="Log out"
+      title="Log out"
     >
-      Log out
+      <img src="/logout-button.png" alt="Log out" className="logout-button-img" />
     </button>
   )
 }

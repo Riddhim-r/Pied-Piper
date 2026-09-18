@@ -33,15 +33,7 @@ const RecycleBinPage = () => {
 
   return (
     <div className="page">
-      <TopNav
-        title="Pied Piper"
-        subtitle="Recycle Bin"
-        rightSlot={
-          <Link className="btn ghost" to="/dashboard">
-            Back
-          </Link>
-        }
-      />
+      <TopNav title="Pied Piper" subtitle="Recycle Bin" />
 
       <div className="content">
         <PageHeader

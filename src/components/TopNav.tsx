@@ -1,37 +1,42 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import HomeButton from './HomeButton'
+import LogoutButton from './LogoutButton'
 import { useAppSettings } from '../features/settings/context/SettingsContext'
 
 type TopNavProps = {
-  title: string
+  title?: string
   subtitle?: string
   rightSlot?: ReactNode
   hideMark?: boolean
+  showHome?: boolean
+  showLogout?: boolean
 }
 
-const TopNav = ({ title, subtitle, rightSlot, hideMark }: TopNavProps) => {
+const TopNav = ({ title, rightSlot, hideMark, showHome = true, showLogout = true }: TopNavProps) => {
   const { settings } = useAppSettings()
-  const displayTitle = settings.applicationName || title
+  const displayTitle = settings.applicationName || title || 'Pied Piper'
   const brandDestination = hideMark ? '/' : '/dashboard'
 
   return (
     <header className="top-nav">
-      <div>
-        <Link to={brandDestination} className="brand">
-          {hideMark ? null : (
-            <span className="brand-mark" aria-label="Pied Piper heart">
-              ♥
-            </span>
-          )}
-          <span className={hideMark ? 'brand-text brand-hero' : 'brand-text'}>
-            {displayTitle}
-          </span>
-        </Link>
-        {subtitle ? <p className="subtle">{subtitle}</p> : null}
+      <Link to={brandDestination} className="brand brand-logo-link" aria-label={displayTitle}>
+        <img src="/logo.png" alt={displayTitle} className="brand-logo-img" />
+      </Link>
+      <div className="nav-actions">
+        {rightSlot !== undefined ? (
+          rightSlot
+        ) : hideMark ? null : (
+          <>
+            {showHome ? <HomeButton /> : null}
+            {showLogout ? <LogoutButton /> : null}
+          </>
+        )}
       </div>
-      <div className="nav-actions">{rightSlot}</div>
     </header>
   )
 }
 
 export default TopNav
+
+

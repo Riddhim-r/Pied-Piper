@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Check, Copy } from 'lucide-react'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
@@ -257,15 +256,7 @@ const AiPromptsPage = () => {
 
   return (
     <div className="page">
-      <TopNav
-        title="Pied Piper"
-        subtitle="AI Prompt Vault"
-        rightSlot={
-          <Link className="btn ghost" to="/dashboard">
-            Back
-          </Link>
-        }
-      />
+      <TopNav title="Pied Piper" subtitle="AI Prompt Vault" />
 
       <div className="content">
         <ConfirmDialog

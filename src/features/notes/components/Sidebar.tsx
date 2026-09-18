@@ -1,6 +1,7 @@
-import { ArrowLeft, Keyboard, Moon, Plus, Sun, Tag, X } from "lucide-react";
+import { Keyboard, Moon, Plus, Sun, Tag, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import HomeButton from "../../../components/HomeButton";
+import LogoutButton from "../../../components/LogoutButton";
 import { SearchBar } from "../../../components/SearchBar";
 import type { NotebookSummary } from "../types";
 
@@ -48,10 +49,10 @@ export function Sidebar({
 
   return (
     <aside className="sidebar">
-      <Link className="btn ghost notes-back-link" to="/dashboard">
-        <ArrowLeft size={16} strokeWidth={2.2} />
-        Back to Dashboard
-      </Link>
+      <div className="sidebar__nav-actions">
+        <HomeButton className="notes-back-link" />
+        <LogoutButton />
+      </div>
       <div className="sidebar__header">
         <div className="sidebar__hero">
           <h1>Notes for Noobs</h1>

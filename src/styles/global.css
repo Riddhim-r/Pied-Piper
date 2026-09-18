@@ -68,6 +68,27 @@ a {
   gap: 20px;
 }
 
+.brand-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.brand-logo-img {
+  height: 110px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.brand-logo-link:hover .brand-logo-img {
+  transform: scale(1.03);
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -111,6 +132,52 @@ a {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.logout-button-img-btn,
+.home-button-img-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  text-decoration: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.logout-button-img-btn:hover,
+.home-button-img-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.05);
+}
+
+.logout-button-img-btn:active,
+.home-button-img-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.logout-button-img {
+  height: 85px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+
+.home-button-img {
+  height: 75px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
 }
 
 .page-header {

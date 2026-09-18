@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import TopNav from '../../../components/TopNav'
+import HomeButton from '../../../components/HomeButton'
+import LogoutButton from '../../../components/LogoutButton'
 import { TagBar } from '../../../components/TagBar'
 import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
 import { SearchBar } from '../../../components/SearchBar'
@@ -454,21 +455,26 @@ const HelpbookPage = () => {
         subtitle="Helpbook"
         rightSlot={
           selectedEntry ? (
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => {
-                setSelectedEntryId(null)
-                setEditingId(null)
-                resetForm()
-              }}
-            >
-              Back
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  setSelectedEntryId(null)
+                  setEditingId(null)
+                  resetForm()
+                }}
+              >
+                ← Back to Topics
+              </button>
+              <HomeButton />
+              <LogoutButton />
+            </>
           ) : (
-            <Link className="btn ghost" to="/dashboard">
-              Back
-            </Link>
+            <>
+              <HomeButton />
+              <LogoutButton />
+            </>
           )
         }
       />

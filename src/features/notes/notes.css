@@ -1764,12 +1764,19 @@
   box-shadow: 10px 10px 0 rgba(42, 31, 44, 0.25);
 }
 
-.notes-back-link {
+.sidebar__nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
   width: 100%;
+}
+
+.notes-back-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 
 .notes-feature.is-dark {

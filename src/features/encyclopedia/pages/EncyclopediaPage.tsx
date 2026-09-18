@@ -129,15 +129,7 @@ const EncyclopediaPage = () => {
 
   return (
     <div className="page">
-      <TopNav
-        title="Pied Piper"
-        subtitle="Encyclopedia"
-        rightSlot={
-          <Link className="btn ghost" to="/dashboard">
-            Back
-          </Link>
-        }
-      />
+      <TopNav title="Pied Piper" subtitle="Encyclopedia" />
 
       <div className="content">
         <ConfirmDialog

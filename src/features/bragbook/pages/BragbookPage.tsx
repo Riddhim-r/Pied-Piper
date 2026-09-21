@@ -9,6 +9,7 @@ import {
 import TopNav from '../../../components/TopNav'
 import { desktopApi } from '../../../lib/desktopApi'
 import type { BragBookEntryType } from '../../../types/electron'
+import bragBookCoverImg from '../../../assets/brag-book-cover.jpg'
 
 export const BragbookPage = () => {
   const [entries, setEntries] = useState<BragBookEntryType[]>([])
@@ -101,7 +102,7 @@ export const BragbookPage = () => {
         <div className="bragbook-cover-banner">
           <div className="bragbook-cover-image-frame">
             <img
-              src="./brag-book-cover.jpg"
+              src={bragBookCoverImg}
               alt="Brag Book Cover Aesthetic"
               className="bragbook-cover-image"
             />

@@ -4,6 +4,7 @@ import HomeButton from './HomeButton'
 import LogoutButton from './LogoutButton'
 import { useAppSettings } from '../features/settings/context/SettingsContext'
 import { playBlipSound } from '../lib/arcadeAudio'
+import logoImg from '../assets/logo.png'
 
 type TopNavProps = {
   title?: string
@@ -27,7 +28,7 @@ const TopNav = ({ title, rightSlot, hideMark, showHome = true, showLogout = true
         aria-label={displayTitle}
         onClick={() => playBlipSound()}
       >
-        <img src="./logo.png" alt={displayTitle} className="brand-logo-img" />
+        <img src={logoImg} alt={displayTitle} className="brand-logo-img" />
       </Link>
       <div className="nav-actions">
         {rightSlot !== undefined ? (

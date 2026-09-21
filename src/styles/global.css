@@ -739,7 +739,9 @@ a {
   width: min(640px, 100%);
   height: clamp(120px, 24vh, 200px);
   border-radius: 0;
-  background: url('./login-hero.jpg') center/cover no-repeat;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   border: 3px solid #7eabce;
   box-shadow: 0 0 10px rgba(126, 171, 206, 0.4);
 }

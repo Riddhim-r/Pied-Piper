@@ -11,6 +11,7 @@ import {
   toggleSoundMuted,
 } from '../lib/arcadeAudio'
 import { isLoggedIn, login } from '../lib/sessionAuth'
+import loginHeroImg from '../assets/login-hero.jpg'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -116,6 +117,7 @@ const LoginPage = () => {
                   <div
                     className="hero-image"
                     role="img"
+                    style={{ backgroundImage: `url(${loginHeroImg})` }}
                     aria-label={`${settings.applicationName} hero`}
                   />
                   <div className="press-start-box">

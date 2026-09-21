@@ -14,7 +14,7 @@ const HomeButton = ({ to = '/dashboard', title = 'Back to Dashboard', className 
       aria-label={title}
       title={title}
     >
-      <img src="/home-button.png" alt={title} className="home-button-img" />
+      <img src="./home-button.png" alt={title} className="home-button-img" />
     </Link>
   )
 }

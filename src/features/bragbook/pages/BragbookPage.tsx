@@ -101,7 +101,7 @@ export const BragbookPage = () => {
         <div className="bragbook-cover-banner">
           <div className="bragbook-cover-image-frame">
             <img
-              src="/brag-book-cover.jpg"
+              src="./brag-book-cover.jpg"
               alt="Brag Book Cover Aesthetic"
               className="bragbook-cover-image"
             />

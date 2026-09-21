@@ -21,7 +21,7 @@ const TopNav = ({ title, rightSlot, hideMark, showHome = true, showLogout = true
   return (
     <header className="top-nav">
       <Link to={brandDestination} className="brand brand-logo-link" aria-label={displayTitle}>
-        <img src="/logo.png" alt={displayTitle} className="brand-logo-img" />
+        <img src="./logo.png" alt={displayTitle} className="brand-logo-img" />
       </Link>
       <div className="nav-actions">
         {rightSlot !== undefined ? (

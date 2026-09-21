@@ -541,7 +541,7 @@ a {
   width: min(900px, 90vw);
   height: min(520px, 60vh);
   border-radius: 0;
-  background: url('/login-hero.jpg') center/cover no-repeat;
+  background: url('./login-hero.jpg') center/cover no-repeat;
   box-shadow: var(--shadow), var(--pixel);
   border: 4px solid var(--ink);
 }

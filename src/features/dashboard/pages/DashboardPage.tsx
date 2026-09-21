@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import TopNav from '../../../components/TopNav'
 import LogoutButton from '../../../components/LogoutButton'
 import PageHeader from '../../../components/PageHeader'
+import { playBlipSound } from '../../../lib/arcadeAudio'
 
 const DashboardPage = () => {
   return (
@@ -18,35 +19,35 @@ const DashboardPage = () => {
         />
 
         <div className="grid">
-          <Link to="/helpbook" className="card link-card">
+          <Link to="/helpbook" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Helpbook</h3>
             <p>Maintain the great library of solutions.</p>
           </Link>
-          <Link to="/ai-prompts" className="card link-card">
+          <Link to="/ai-prompts" className="card link-card" onClick={() => playBlipSound()}>
             <h3>AI Prompt Vault</h3>
             <p>Maintain reusable prompts for every situation.</p>
           </Link>
-          <Link to="/notes" className="card link-card">
+          <Link to="/notes" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Notes for Noobs</h3>
             <p>Open the personal notebook workspace.</p>
           </Link>
-          <Link to="/encyclopedia" className="card link-card">
+          <Link to="/encyclopedia" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Encyclopedia</h3>
             <p>Organize useful links inside topics.</p>
           </Link>
-          <Link to="/bragbook" className="card link-card">
+          <Link to="/bragbook" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Brag Book</h3>
             <p>Record career wins & personal milestones.</p>
           </Link>
-          <Link to="/todo" className="card link-card">
+          <Link to="/todo" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Todo</h3>
             <p>Maintain one focused task list.</p>
           </Link>
-          <Link to="/recycle-bin" className="card link-card">
+          <Link to="/recycle-bin" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Recycle Bin</h3>
             <p>Review deleted knowledge items.</p>
           </Link>
-          <Link to="/settings" className="card link-card">
+          <Link to="/settings" className="card link-card" onClick={() => playBlipSound()}>
             <h3>Settings</h3>
             <p>Manage application and database preferences.</p>
           </Link>

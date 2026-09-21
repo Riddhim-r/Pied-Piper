@@ -57,11 +57,12 @@ For detailed documentation, workflows, and module capabilities, see **[features.
 
 - **Notes for Noobs**: Rich document editor (TipTap engine) with Smart Pasting, light/dark themes, slash commands, outline navigation, focus mode, and PDF export.
 - **Helpbook**: Technical solution and wisdom repository organized by ordered steps and tags.
-- **AI Prompt Vault**: Structured template library for LLM system/user prompts.
+- **AI Prompt Vault**: Structured template library for LLM system/user prompts with one-click copying and audio feedback.
 - **Encyclopedia**: Topic hierarchy and reference link directory.
 - **Todo**: Focused single-list task manager with strict completion rules.
 - **Recycle Bin**: Centralized recovery index for soft-deleted items across features.
 - **Settings**: Per-feature theme customization, application renaming, and local database backup/restore controls.
+- **Retro Arcade CRT Vault & 8-Bit Audio**: Retro CRT scanline login cabinet, Web Audio API sound synthesizer, and system-wide administrative audio feedback.
 
 👉 For the full feature showcase, see **[features.md](features.md)**.
 

@@ -6,6 +6,7 @@ import { TagBar } from '../../../components/TagBar'
 import { TagSelectDropdown } from '../../../components/TagSelectDropdown'
 import { SearchBar } from '../../../components/SearchBar'
 import { useTagFilter } from '../../../hooks/useTagFilter'
+import { playErrorSound, playSuccessSound } from '../../../lib/arcadeAudio'
 import {
   createPromptEntry,
   deletePromptEntry,
@@ -109,6 +110,7 @@ const AiPromptsPage = () => {
     }
 
     if (success) {
+      playSuccessSound()
       setCopiedId(entry.id)
       setTimeout(() => {
         setCopiedId((prev) => (prev === entry.id ? null : prev))
@@ -240,6 +242,7 @@ const AiPromptsPage = () => {
 
     try {
       await deletePromptEntry(pendingDeleteId)
+      playErrorSound()
     } catch (deleteError) {
       console.error(deleteError)
       setError('Could not delete prompt.')

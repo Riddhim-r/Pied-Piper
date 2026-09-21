@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { playBlipSound } from '../lib/arcadeAudio'
 
 type HomeButtonProps = {
   to?: string
@@ -13,6 +14,7 @@ const HomeButton = ({ to = '/dashboard', title = 'Back to Dashboard', className 
       className={`home-button-img-btn ${className}`.trim()}
       aria-label={title}
       title={title}
+      onClick={() => playBlipSound()}
     >
       <img src="./home-button.png" alt={title} className="home-button-img" />
     </Link>

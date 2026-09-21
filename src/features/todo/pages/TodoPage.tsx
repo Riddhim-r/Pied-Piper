@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import PageHeader from '../../../components/PageHeader'
 import TopNav from '../../../components/TopNav'
+import { playErrorSound } from '../../../lib/arcadeAudio'
 import {
   addTodoTask,
   createTodoList,
@@ -128,6 +129,7 @@ const TodoPage = () => {
 
     try {
       await deleteTodoList()
+      playErrorSound()
       setShowDeleteConfirm(false)
       await loadTodo()
     } catch (deleteError) {

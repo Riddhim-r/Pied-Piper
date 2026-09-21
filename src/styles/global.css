@@ -90,7 +90,22 @@ a {
 }
 
 .page.login-page {
-  padding-top: 32px;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  padding: 2px 16px 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-page .top-nav {
+  margin: 0 auto;
+  padding: 0;
+}
+
+.login-page .top-nav .brand-logo-img {
+  height: 140px;
+  max-height: 18vh;
 }
 
 .content {
@@ -567,65 +582,473 @@ a {
   margin: 0;
 }
 
-.login-page .panel {
-  grid-template-columns: 1fr;
-  max-width: 900px;
+/* ==================== RETRO ARCADE CRT LOGIN CABINET ==================== */
+.arcade-cabinet-wrapper {
+  flex: 1;
+  min-height: 0;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.login-hero {
+.arcade-cabinet {
+  width: 100%;
+  max-height: calc(100vh - 95px);
+  background: #2a1f2c;
+  border: 4px solid #1a121c;
+  border-radius: 10px;
+  box-shadow: 0 12px 0 rgba(42, 31, 44, 0.4), 0 0 0 4px #4a384e;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #fff6fb;
+  font-family: 'Press Start 2P', system-ui, monospace;
+}
+
+/* Marquee Header */
+.arcade-marquee {
+  background: linear-gradient(135deg, #7eabce 0%, #6a8cc8 100%);
+  border: 3px solid #1a121c;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 3px 0 #1a121c;
+}
+
+.marquee-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.marquee-pill {
+  background: #2a1f2c;
+  color: #f4d8e2;
+  font-size: 0.58rem;
+  padding: 3px 6px;
+  border: 2px solid #fff;
+  letter-spacing: 1px;
+}
+
+.marquee-title {
+  color: #ffffff;
+  font-size: 0.82rem;
+  text-shadow: 2px 2px 0 #2a1f2c;
+  letter-spacing: 0.5px;
+}
+
+.marquee-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.high-score-label {
+  font-size: 0.55rem;
+  color: #f4d8e2;
+}
+
+.high-score-val {
+  font-size: 0.72rem;
+  color: #ffe066;
+  text-shadow: 1px 1px 0 #2a1f2c;
+}
+
+.sound-toggle-btn {
+  background: #2a1f2c;
+  color: #fff;
+  border: 2px solid #fff;
+  font-family: 'Press Start 2P', system-ui, monospace;
+  font-size: 0.55rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.sound-toggle-btn:hover {
+  background: #3d2d40;
+  transform: scale(1.04);
+}
+
+.sound-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+/* CRT Bezel & Screen */
+.crt-bezel {
+  background: #1e1520;
+  border: 4px solid #140d16;
+  border-radius: 6px;
+  padding: 8px;
   flex: 1;
-  min-height: calc(100vh - 180px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.crt-screen {
+  position: relative;
+  background: #18111b;
+  border: 2px solid #3d2b40;
+  border-radius: 4px;
+  flex: 1;
+  min-height: 0;
+  max-height: 380px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.9), 0 0 12px rgba(126, 171, 206, 0.15);
+}
+
+.crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18),
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.7;
+}
+
+/* STAGE 1: Arcade Hero Stage */
+.arcade-hero-stage {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  padding: 16px;
+  gap: 14px;
 }
 
-.hero-image {
-  width: min(900px, 90vw);
-  height: min(520px, 60vh);
+.arcade-hero-stage .hero-image {
+  width: min(640px, 100%);
+  height: clamp(120px, 24vh, 200px);
   border-radius: 0;
   background: url('./login-hero.jpg') center/cover no-repeat;
-  box-shadow: var(--shadow), var(--pixel);
-  border: 4px solid var(--ink);
+  border: 3px solid #7eabce;
+  box-shadow: 0 0 10px rgba(126, 171, 206, 0.4);
 }
 
-.hi-text {
-  background: none;
-  border: none;
-  padding: 0;
+.press-start-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.insert-coin-text {
+  font-size: 0.62rem;
+  color: #ffe066;
+  text-shadow: 2px 2px 0 #000;
+  animation: blinkPrompt 1.2s infinite steps(2, start);
+  margin: 0;
+}
+
+.arcade-start-btn {
+  background: #c5422d;
+  color: #ffffff;
+  border: 3px solid #ffffff;
+  padding: 10px 22px;
+  font-family: 'Press Start 2P', system-ui, monospace;
+  font-size: 0.95rem;
   cursor: pointer;
-  font-family: 'Press Start 2P', system-ui, sans-serif;
-  font-size: 1.2rem;
-  color: var(--ink);
+  box-shadow: 0 5px 0 #7a2618, 0 0 12px rgba(197, 66, 45, 0.6);
+  transition: transform 0.1s ease, background 0.15s ease;
+  letter-spacing: 1px;
 }
 
-.hi-text:active {
-  animation: blip 0.25s steps(2, end);
+.arcade-start-btn:hover {
+  background: #d84d37;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #7a2618, 0 0 16px rgba(197, 66, 45, 0.8);
 }
 
-.login-card {
-  min-height: min(520px, 60vh);
-  width: min(900px, 90vw);
-  margin: 0 auto;
-  display: grid;
-  gap: 36px;
-  align-content: center;
-  font-family: 'Press Start 2P', system-ui, sans-serif;
+.arcade-start-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #7a2618;
+}
+
+.coin-subtext {
+  font-size: 0.5rem;
+  color: #a08da2;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* STAGE 2: Arcade Vault Stage */
+.arcade-vault-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.arcade-form {
+  width: min(580px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: rgba(42, 31, 44, 0.85);
+  border: 3px solid #7eabce;
+  padding: 18px 22px;
+  box-shadow: 0 0 16px rgba(126, 171, 206, 0.2);
+}
+
+.vault-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 2px dashed #5f4a60;
+  padding-bottom: 8px;
+}
+
+.identity-badge {
+  background: #7eabce;
+  color: #2a1f2c;
+  font-size: 0.58rem;
+  padding: 4px 10px;
+  font-weight: bold;
+}
+
+.security-status {
+  font-size: 0.55rem;
+  color: #ff6b6b;
+  animation: blinkPrompt 1.5s infinite steps(2, start);
+}
+
+.passcode-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.passcode-label {
+  font-size: 0.6rem;
+  color: #f4d8e2;
+  line-height: 1.4;
+}
+
+.arcade-input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.arcade-input-row input {
+  flex: 1;
+  background: #120b15;
+  border: 3px solid #7eabce;
+  color: #ffe066;
+  font-family: 'Press Start 2P', system-ui, monospace;
+  font-size: 0.95rem;
+  padding: 12px 16px;
+  outline: none;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+}
+
+.arcade-input-row input:focus {
+  border-color: #ffe066;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 224, 102, 0.4);
+}
+
+.arcade-toggle-btn {
+  background: #3d2d40;
+  border: 3px solid #7eabce;
+  color: #fff;
+  font-family: 'Press Start 2P', system-ui, monospace;
+  font-size: 0.6rem;
+  padding: 0 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.arcade-toggle-btn:hover {
+  background: #56405a;
+}
+
+.arcade-error-msg {
+  background: rgba(197, 66, 45, 0.25);
+  border: 2px solid #c5422d;
+  color: #ff6b6b;
+  padding: 10px;
+  font-size: 0.62rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.arcade-controls-row {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.arcade-btn {
+  font-family: 'Press Start 2P', system-ui, monospace;
   font-size: 0.72rem;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-.login-card input,
-.login-card textarea,
-.login-card .btn,
-.login-card .login-identity {
-  font-family: 'Press Start 2P', system-ui, sans-serif;
+.arcade-btn.primary {
+  background: #7eabce;
+  color: #1a121c;
+  border: 3px solid #ffffff;
+  box-shadow: 0 4px 0 #4a6c8e;
 }
 
-.login-card .field span {
-  line-height: 1.6;
+.arcade-btn.primary:hover {
+  background: #94c1e4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #4a6c8e;
 }
+
+.arcade-btn.primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #4a6c8e;
+}
+
+.arcade-btn.secondary {
+  background: #3d2d40;
+  color: #f4d8e2;
+  border: 3px solid #7eabce;
+  box-shadow: 0 4px 0 #211724;
+}
+
+.arcade-btn.secondary:hover {
+  background: #503c54;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #211724;
+}
+
+.arcade-btn.secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #211724;
+}
+
+/* Cabinet Footer Controls */
+.cabinet-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #1e1520;
+  border: 3px solid #140d16;
+  border-radius: 6px;
+  font-size: 0.6rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #51cf66;
+  box-shadow: 0 0 8px #51cf66;
+}
+
+.status-led.glowing {
+  animation: ledPulse 2s infinite ease-in-out;
+}
+
+.status-text {
+  color: #a08da2;
+}
+
+.speaker-grille {
+  display: flex;
+  gap: 6px;
+}
+
+.speaker-grille span {
+  width: 4px;
+  height: 16px;
+  background: #3d2d40;
+  border-radius: 2px;
+}
+
+.coin-slot-badge {
+  color: #ffe066;
+}
+
+/* ANIMATIONS */
+@keyframes blinkPrompt {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+@keyframes ledPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px #51cf66; }
+  50% { opacity: 0.4; box-shadow: 0 0 2px #51cf66; }
+}
+
+.crt-screen.shake {
+  animation: screenShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes screenShake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+  40%, 60% { transform: translate3d(6px, 0, 0); }
+}
+
+.crt-screen.unlock-flash {
+  animation: crtUnlock 0.5s ease-out forwards;
+}
+
+@keyframes crtUnlock {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(2.5) contrast(1.5); }
+  100% { filter: brightness(1); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .arcade-marquee {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .arcade-hero-stage .hero-image {
+    height: 200px;
+  }
+  .arcade-start-btn {
+    font-size: 0.85rem;
+    padding: 10px 18px;
+  }
+  .arcade-input-row {
+    flex-direction: column;
+  }
+  .arcade-toggle-btn {
+    padding: 8px;
+  }
+}
+
 
 .stepper {
   display: flex;

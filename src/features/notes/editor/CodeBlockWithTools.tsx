@@ -3,6 +3,7 @@ import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { common, createLowlight } from "lowlight";
+import { playSuccessSound } from "../../../lib/arcadeAudio";
 
 const lowlight = createLowlight(common);
 
@@ -11,6 +12,7 @@ function CodeBlockNodeView({ node, selected }: NodeViewProps) {
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(node.textContent);
+    playSuccessSound();
   };
 
   return (

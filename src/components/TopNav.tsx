@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import HomeButton from './HomeButton'
 import LogoutButton from './LogoutButton'
 import { useAppSettings } from '../features/settings/context/SettingsContext'
+import { playBlipSound } from '../lib/arcadeAudio'
 
 type TopNavProps = {
   title?: string
@@ -20,7 +21,12 @@ const TopNav = ({ title, rightSlot, hideMark, showHome = true, showLogout = true
 
   return (
     <header className="top-nav">
-      <Link to={brandDestination} className="brand brand-logo-link" aria-label={displayTitle}>
+      <Link
+        to={brandDestination}
+        className="brand brand-logo-link"
+        aria-label={displayTitle}
+        onClick={() => playBlipSound()}
+      >
         <img src="./logo.png" alt={displayTitle} className="brand-logo-img" />
       </Link>
       <div className="nav-actions">

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import ConfirmDialog from '../../../components/ConfirmDialog'
 import PageHeader from '../../../components/PageHeader'
 import TopNav from '../../../components/TopNav'
+import { playErrorSound, playSuccessSound } from '../../../lib/arcadeAudio'
 import {
   getRecycleBinCategories,
   getRecycleBinItems,
@@ -105,6 +106,7 @@ const RecycleBinCategoryPage = () => {
 
     try {
       const result = await restoreRecycleBinItems([...selectedIds])
+      playSuccessSound()
       setMessage(`${result.processed} ${result.processed === 1 ? 'item' : 'items'} restored.`)
       await loadCategory()
     } catch (restoreError) {
@@ -126,6 +128,7 @@ const RecycleBinCategoryPage = () => {
 
     try {
       const result = await permanentlyDeleteRecycleBinItems([...selectedIds])
+      playErrorSound()
       setShowPermanentDeleteConfirm(false)
       setMessage(
         `${result.processed} ${result.processed === 1 ? 'item' : 'items'} permanently deleted.`,

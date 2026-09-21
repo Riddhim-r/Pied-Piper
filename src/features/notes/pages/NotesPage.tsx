@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { List, Maximize2, Minimize2, Save, Trash2, X } from "lucide-react";
 import { useNavigate, Routes, Route } from "react-router-dom";
 import ConfirmDialog from "../../../components/ConfirmDialog";
+import { playErrorSound } from "../../../lib/arcadeAudio";
 import { EditorPane } from "../components/EditorPane";
 import { OutlinePanel } from "../components/OutlinePanel";
 import { ShortcutsView } from "../components/ShortcutsView";
@@ -392,6 +393,7 @@ function AppShell() {
     const targetId = currentNotebook.id;
     setPendingDeleteNotebook(false);
     await softDeleteNotebook(targetId);
+    playErrorSound();
     setSelectedId(null);
     clearCurrentNotebook();
     setSaveMessage("Notebook moved to Recycle Bin.");

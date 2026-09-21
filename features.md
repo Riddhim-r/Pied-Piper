@@ -1,6 +1,6 @@
 # Pied Piper - Comprehensive Feature Showcase & Guide
 
-**Pied Piper** is a private, offline-first desktop knowledge base and productivity workspace built to serve as a lifelong personal knowledge vault and educational storage companion. It combines rich document editing, wisdom libraries, AI prompt management, topic collections, task lists, custom themes, and robust database management into one self-contained desktop system.
+**Pied Piper** is a private, offline-first desktop knowledge base and productivity workspace built to serve as a lifelong personal knowledge vault and educational storage companion. It combines rich document editing, wisdom libraries, AI prompt management, topic collections, task lists, custom themes, a retro arcade CRT authentication vault with 8-bit sound effects, and robust database management into one self-contained desktop system.
 
 ---
 
@@ -14,17 +14,19 @@
 6. [Todo (Focused Task Manager)](#6-todo-focused-task-manager)
 7. [Recycle Bin (Shared Recovery Index)](#7-recycle-bin-shared-recovery-index)
 8. [Settings & Custom Feature Themes](#8-settings--custom-feature-themes)
-9. [Keyboard Shortcuts Reference](#9-keyboard-shortcuts-reference)
-10. [Offline SQLite Data Architecture & Safety](#10-offline-sqlite-data-architecture--safety)
+9. [Retro Arcade CRT Vault & System-Wide 8-Bit Audio](#9-retro-arcade-crt-vault--system-wide-8-bit-audio)
+10. [Keyboard Shortcuts Reference](#10-keyboard-shortcuts-reference)
+11. [Offline SQLite Data Architecture & Safety](#11-offline-sqlite-data-architecture--safety)
 
 ---
 
 ## 1. Dashboard
 
-The Dashboard is the main application home providing direct visual access to every module.
+The Dashboard is the main application home providing direct visual access to every workspace module.
 
-- **Navigation Hub**: Access Helpbook, AI Prompt Vault, Notes for Noobs, Encyclopedia, Todo, Recycle Bin, and Settings.
-- **Custom Header & Identity**: Displays the configurable application name set in Settings. Clicking the heart mark or application title from any feature returns to the Dashboard.
+- **Navigation Hub**: Access Helpbook, AI Prompt Vault, Notes for Noobs, Encyclopedia, Todo, Recycle Bin, and Settings via interactive feature cards.
+- **Custom Header & Identity**: Displays the configurable application name set in Settings. Clicking the brand logo link from any feature returns to the Dashboard.
+- **Audio Feedback**: Clicking any main workspace tile triggers a retro 8-bit blip chime.
 
 ---
 
@@ -38,10 +40,10 @@ The Dashboard is the main application home providing direct visual access to eve
 - **Creation & Search**: Create notebooks instantly and search through titles.
 - **Tagging & Filtering**: Assign tags to notebooks with case-insensitive duplicate protection (e.g. prevents duplicate forms like `Work`, `work`, and `WORK`). Filter notes in the sidebar by tag.
 - **Auto-Discard Cleanliness**: If a newly created notebook remains unnamed, untagged, and empty when you navigate away, it is automatically discarded rather than cluttering your notebook list or Recycle Bin.
-- **Soft Deletion & Recovery**: Soft-delete notebooks to move them to the Recycle Bin, where they can be restored or permanently removed.
+- **Soft Deletion & Recovery**: Soft-delete notebooks to move them to the Recycle Bin with an accompanying 8-bit deletion audio chime, where they can be restored or permanently removed.
 
 #### Rich Editor & Formatting
-- **Typography & Blocks**: Paragraphs, Headings (H1, H2, H3), Blockquotes, Code Blocks, Tables, Task lists with checkboxes, and Bullet / Numbered lists.
+- **Typography & Blocks**: Paragraphs, Headings (H1, H2, H3), Blockquotes, Code Blocks with syntax highlight & one-click code copy button (with victory sound chime), Tables, Task lists with checkboxes, and Bullet / Numbered lists.
 - **Advanced Lists**: Supports standard Numbered (`1, 2, 3`), Lettered (`A, B, C`), and Roman-numbered (`i, ii, iii`) lists. Task checkboxes stay cleanly aligned with text.
 - **Styling**: Bold, Italic, Underline, Strikethrough, Subscript, Superscript, Custom Text Colors, Highlight Colors, and Text Sizing.
 - **Smart Pasting (Intelligent Sentence Formatting)**: When pasting text from slides, PDFs, or web pages, soft line breaks (`\n`) mid-sentence are automatically merged into clean, continuous single-line sentences while preserving true paragraph breaks (`\n\n`) and list structures.
@@ -81,8 +83,9 @@ Helpbook acts as a personal knowledge repository for technical solutions, troubl
 A structured library to store, refine, and organize reusable prompts for LLMs (Gemini, Claude, GPT, etc.).
 
 - **Reusable System & User Prompts**: Store prompt templates with titles, tags, and multi-line prompt text.
+- **One-Click Copying**: Copy full prompt text to clipboard instantly with visual feedback and an 8-bit audio chime.
 - **Tag Filtering & Editing**: Filter prompts by domain or task type. Edit and update prompts seamlessly.
-- **Recycle Bin Integration**: Soft-deleted prompts are stored safely in the Recycle Bin for recovery.
+- **Recycle Bin Integration**: Soft-deleted prompts are stored safely in the Recycle Bin for recovery with audio feedback.
 
 ---
 
@@ -104,6 +107,7 @@ A streamlined task manager designed for single-minded focus without project mana
 - **Single Active List Constraint**: Enforces focus by supporting exactly one active task list at a time.
 - **Completion Rules**: A new list cannot be created while an existing list exists. The current list cannot be deleted until it contains at least one task and every task is checked off as completed.
 - **Automatic Reordering**: Checked tasks automatically move beneath unfinished tasks.
+- **Deletion Audio Feedback**: Deleting a completed Todo list triggers a retro 8-bit deletion audio effect.
 - **Keyboard Workflow**: Fast composition and checking (`Ctrl + Shift + T`).
 
 ---
@@ -118,6 +122,7 @@ A centralized index for soft-deleted records across four categories:
 
 - **Category Item Counters**: Displays deleted item totals for each module.
 - **Multi-Select & Bulk Actions**: Select individual items, multiple items, or all items to restore or permanently delete them.
+- **Audio Feedback**: Restoring items plays a victory fanfare chime; permanent deletion triggers a retro error/deletion audio effect.
 - **Permanent Deletion Protection**: Permanent removal requires explicit confirmation and cleans up SQLite records permanently.
 
 ---
@@ -132,7 +137,30 @@ Settings controls application-wide preferences, visual themes, and local databas
 
 ---
 
-## 9. Keyboard Shortcuts Reference
+## 9. Retro Arcade CRT Vault & System-Wide 8-Bit Audio
+
+Pied Piper features an authentic **8-Bit Retro Arcade CRT Vault** authentication interface and system-wide audio feedback.
+
+### Retro Arcade CRT Vault Login
+- **Arcade Chassis Styling**: Styled with CRT monitor curvature, authentic scanlines (`repeating-linear-gradient`), speaker grilles, and glowing status LED (`SYSTEM ONLINE`).
+- **Interactive Two-Stage Flow**:
+  - **Stage 1 (PRESS START)**: High-score marquee (`HIGH SCORE: 999990`), prominent hero logo, blinking prompt (`★ INSERT COIN TO ACCESS ★`), and interactive `▶ PRESS START ◀` button.
+  - **Stage 2 (Arcade Vault Entry)**: Player badge (`PLAYER 1: BREAD-WINNER`), passcode entry with character input slots, eye show/hide toggle (`👁 SHOW` / `🙈 HIDE`), access denied error banner, and tactile arcade controller buttons (`[A] LET'S GO!`, `[B] BACK`).
+- **CRT Micro-Animations**: Screen shake animation on invalid password code and CRT power-on flash animation on code unlock.
+- **Viewport-Fitting Compact Layout**: Bound to `100vh` with dynamic hero logo scaling (`140px` hero logo height) for a viewport-centered display without scrolling.
+
+### System-Wide 8-Bit Web Audio Synthesizer
+Built on native Web Audio API (zero external sound dependencies):
+- **Coin Insert Chime (`playCoinSound`)**: Played on starting the arcade vault login.
+- **Navigation Blip (`playBlipSound`)**: Played when clicking "Back to Dashboard", top navigation logo link, logging out, or opening Dashboard feature tiles.
+- **Success Fanfare (`playSuccessSound`)**: Played on successful login unlock, copying AI prompts, copying code blocks, or restoring items from the Recycle Bin.
+- **Deletion Buzzer (`playErrorSound`)**: Played on incorrect password entry, deleting notebooks, deleting completed Todo lists, deleting prompts, or permanently deleting Recycle Bin items.
+- **Mute / Unmute Sound Toggle**: Toggle audio on/off via the `🔊 SFX ON` / `🔇 MUTE` button on the arcade marquee.
+- **Distraction-Free Editor Policy**: Notebook text typing and formatting tools remain quiet to maintain focused writing.
+
+---
+
+## 10. Keyboard Shortcuts Reference
 
 ### Application-Wide Shortcuts
 
@@ -174,7 +202,7 @@ Settings controls application-wide preferences, visual themes, and local databas
 
 ---
 
-## 10. Offline SQLite Data Architecture & Safety
+## 11. Offline SQLite Data Architecture & Safety
 
 - **100% Local & Offline**: All application data is stored in a single local SQLite database via `better-sqlite3`. No cloud sync, telemetry, or external database calls.
 - **Export Database**: Create a portable, consistent copy of your SQLite database (`.db` format) at any location.
